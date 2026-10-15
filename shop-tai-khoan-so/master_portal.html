@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>👑 MASTER ADMIN PORTAL - Trung Tâm Điều Hành Tối Cao | Designer Store</title>
+  <title>👑 MASTER ADMIN PORTAL - Trung Tâm Điều Hành Tối Cao | DES STORE</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js cho biểu đồ thống kê doanh thu -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -39,7 +39,7 @@
           <span class="text-xs text-amber-400 font-bold">🔒 Khóa Tối Cao</span>
         </div>
         <h2 id="masterLoginBrandTitle" class="text-2xl font-black text-white tracking-tight">MASTER ADMIN PORTAL</h2>
-        <p id="masterLoginBrandDesc" class="text-xs text-slate-400 mt-1">Khu vực điều hành tối cao dành riêng cho Chủ Shop Designer Store. Vui lòng nhập Master Passcode để mở khóa.</p>
+        <p id="masterLoginBrandDesc" class="text-xs text-slate-400 mt-1">Khu vực điều hành tối cao dành riêng cho Chủ Shop DES STORE. Vui lòng nhập Master Passcode để mở khóa.</p>
       </div>
 
       <form onsubmit="event.preventDefault(); verifyMasterPasscode(); return false;" class="space-y-4">
@@ -85,7 +85,7 @@
         <div>
           <div class="flex items-center gap-2">
             <h1 class="font-black text-base sm:text-lg leading-tight tracking-tight text-white flex items-center gap-2">
-              <span id="masterHeaderShopTitle">DESIGNER STORE</span>
+              <span id="masterHeaderShopTitle">DES STORE</span>
               <span class="text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 to-red-500/20 text-amber-300 font-extrabold border border-amber-500/40">SUPER ADMIN</span>
             </h1>
           </div>
@@ -165,7 +165,7 @@
               </div>
             </div>
             <div>
-              <h2 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-1.5"><span id="masterDrawerShopTitle">DESIGNER STORE</span> <span class="text-slate-400 font-normal text-xs">(☰)</span></h2>
+              <h2 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-1.5"><span id="masterDrawerShopTitle">DES STORE</span> <span class="text-slate-400 font-normal text-xs">(☰)</span></h2>
               <p class="text-[11px] text-slate-400">Chọn module để cấu hình & quản lý</p>
             </div>
           </div>
@@ -428,7 +428,7 @@
 
               <div>
                 <label class="block font-semibold text-slate-300 mb-1">Tên Cửa Hàng (Shop Name)</label>
-                <input type="text" id="cfgShopName" value="DESIGNER STORE" class="w-full bg-[#171c2b] border border-[#28334a] rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-red-500">
+                <input type="text" id="cfgShopName" value="DES STORE" class="w-full bg-[#171c2b] border border-[#28334a] rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-red-500">
               </div>
 
               <div>
@@ -1093,7 +1093,7 @@
 
     function loadConfigFromStorage() {
       const defaultCfg = {
-        shopName: 'DESIGNER STORE',
+        shopName: 'DES STORE',
         slogan: 'OFFICIAL SERVICE • Giao dịch 24/7',
         subDesc: 'Gemini AI • Discord Nitro • Deco Profile',
         avatarUrl: './avatar.jpg',
@@ -1537,7 +1537,7 @@
       if (!cfg) cfg = masterState.config;
       if (!cfg) return;
 
-      const shopName = (cfg.shopName && cfg.shopName.trim()) ? cfg.shopName.trim() : 'DESIGNER STORE';
+      const shopName = (cfg.shopName && cfg.shopName.trim()) ? cfg.shopName.trim() : 'DES STORE';
       
       // 1. Cập nhật tên shop trên Header chính của Master Portal
       const headerShopTitle = document.getElementById('masterHeaderShopTitle');
@@ -2736,7 +2736,7 @@
           if (masterState.currentTab === 'config') {
             populateConfigInputs();
           }
-          showMasterToast(`🔄 Cấu hình & tên shop vừa được cập nhật: [${data.config.shopName || 'DESIGNER STORE'}]`, 'info');
+          showMasterToast(`🔄 Cấu hình & tên shop vừa được cập nhật: [${data.config.shopName || 'DES STORE'}]`, 'info');
         }
       } else if (data.type === 'USER_AUDIT_LOG_ADDED') {
         loadAuditLogsFromStorage();
