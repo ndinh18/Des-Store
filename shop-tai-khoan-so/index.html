@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
@@ -40,8 +40,8 @@
 
     <!-- Right Controls -->
     <div class="flex items-center gap-2 sm:gap-3">
-      <!-- Role Switcher -->
-      <div class="bg-[#181d29] border border-[#262c3d] p-1 rounded-xl flex items-center text-xs shadow-inner">
+      <!-- Role Switcher (Ẩn trong chế độ bán hàng chính thức) -->
+      <div id="roleSwitcherContainer" class="hidden bg-[#181d29] border border-[#262c3d] p-1 rounded-xl items-center text-xs shadow-inner">
         <span class="text-slate-400 px-2 font-medium hidden sm:inline">Chế độ test:</span>
         <button id="btnRoleCustomer" onclick="switchRole('customer')" class="px-2.5 py-1 rounded-lg font-medium transition-all bg-red-600 text-white shadow-sm">
           👤 Khách hàng
@@ -371,14 +371,14 @@
               <label class="block text-xs font-semibold text-slate-300 mb-1">
                 Địa chỉ Email <span class="text-red-500">*</span>
               </label>
-              <input type="email" id="authEmailInput" required value="khachhang@gmail.com" onkeydown="if(event.key==='Enter'){event.preventDefault();onAuthLoginSubmit(event);}" placeholder="ban@gmail.com" class="w-full text-sm bg-[#1a1f2c] border border-[#2d3448] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 font-mono">
+              <input type="email" id="authEmailInput" required value="" onkeydown="if(event.key==='Enter'){event.preventDefault();onAuthLoginSubmit(event);}" placeholder="ban@gmail.com" class="w-full text-sm bg-[#1a1f2c] border border-[#2d3448] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 font-mono">
             </div>
 
             <div>
               <label class="block text-xs font-semibold text-slate-300 mb-1">
                 Mật khẩu <span class="text-red-500">*</span>
               </label>
-              <input type="password" id="authPasswordInput" required value="123456" onkeydown="if(event.key==='Enter'){event.preventDefault();onAuthLoginSubmit(event);}" placeholder="••••••••" class="w-full text-sm bg-[#1a1f2c] border border-[#2d3448] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 font-mono">
+              <input type="password" id="authPasswordInput" required value="" onkeydown="if(event.key==='Enter'){event.preventDefault();onAuthLoginSubmit(event);}" placeholder="••••••••" class="w-full text-sm bg-[#1a1f2c] border border-[#2d3448] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 font-mono">
             </div>
 
             <button type="button" onclick="onAuthLoginSubmit(event)" id="authSubmitBtn" class="w-full py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-red-600/30 transition-all flex items-center justify-center gap-2 transform active:scale-95 cursor-pointer">
@@ -1613,261 +1613,15 @@
       currentView: 'shop',
       previousView: 'shop',
       viewHistory: [],
-      currentOrderCode: 'DS00001',
-      currentTranscriptOrderCode: 'DS00000',
-      currentNotepadOrderCode: 'DS00000',
-      pendingAttachment: null, // Lưu trữ ảnh hoặc tệp chuẩn bị gửi
-      ordersLayout: 'columns', // 'columns' (4 Cột dọc) hoặc 'rows' (Xếp dòng ngang)
-      orderSeq: 4,
-      queueSequence: 7, // Thứ tự hàng đợi cho đơn tiếp theo (bắt đầu từ 7/22 logic)
-      queueTotal: 22,    // Tổng số đơn trong hàng đợi xử lý của ngày
-      orders: {
-        'DS00000': {
-          orderCode: 'DS00000',
-          productName: 'Discord Nitro 1 Tháng (Trial)',
-          price: '45.000 đ',
-          amountRaw: 45000,
-          status: 'COMPLETED',
-          createdAt: '18:30',
-          customerName: 'Khách Hàng A',
-          customerEmail: 'khachhang@gmail.com',
-          unreadForAdmin: 0,
-          unreadForCustomer: 0,
-          queueInfo: {
-            position: 6,
-            total: 6,
-            waitingAhead: 0,
-            estimatedMins: 1,
-            progressPercent: 100,
-            confirmedAt: '18:32'
-          },
-          account: {
-            type: 'gmail',
-            gmail: 'designer.nitro01@gmail.com',
-            password: 'NitroVip2026@',
-            hash: 'hash_nitro_trial_9f8e7d6c5b',
-            time: '18:35',
-            filename: 'Tai_Khoan_DS00000.txt'
-          },
-          feedback: {
-            rating: 5,
-            comment: 'Admin Designer giao dịch siêu nhanh, bảo hành chu đáo và hướng dẫn tận tình!',
-            submittedAt: '18:45'
-          },
-          messages: [
-            {
-              sender: 'bot',
-              senderName: 'Designer Store Bot',
-              time: '18:30',
-              content: 'Chào bạn! Đơn hàng **[DS00000]** cho **Discord Nitro 1 Tháng (Trial)** đã được khởi tạo.'
-            },
-            {
-              sender: 'admin',
-              senderName: '🛡️ Admin Designer',
-              type: 'qr_card',
-              time: '18:31',
-              vietQrUrl: 'https://img.vietqr.io/image/971025-PSP2626514800000039-compact.png?amount=45000&addInfo=NITRO%20TRIAL%20DS00000&accountName=NGO%20QUANG%20DINH',
-              amountRaw: 45000,
-              amountFormatted: '45.000 ₫',
-              memo: 'NITRO TRIAL DS00000'
-            },
-            {
-              sender: 'bot',
-              senderName: 'Designer Store Bot',
-              type: 'payment_confirmed_card',
-              time: '18:32',
-              orderCode: 'DS00000',
-              productName: 'Discord Nitro 1 Tháng (Trial)',
-              price: '45.000 đ',
-              amountFormatted: '45.000 ₫',
-              memo: 'NITRO TRIAL DS00000',
-              customerName: 'Khách Hàng A',
-              confirmedAt: '18:32',
-              queuePosition: 6,
-              queueTotal: 6,
-              waitingAhead: 0,
-              estimatedMins: 1,
-              progressPercent: 100
-            },
-            {
-              sender: 'admin',
-              senderName: '🛡️ Admin Designer',
-              type: 'account_delivery_card',
-              time: '18:35',
-              gmail: 'designer.nitro01@gmail.com',
-              password: 'NitroVip2026@',
-              hash: 'hash_nitro_trial_9f8e7d6c5b',
-              notepadFilename: 'Tai_Khoan_DS00000.txt'
-            },
-            {
-              sender: 'customer',
-              senderName: 'Khách Hàng A',
-              time: '18:40',
-              content: 'Đã nhận file Notepad và đăng nhập kích hoạt thành công rồi nha shop, uy tín 100%!'
-            },
-            {
-              sender: 'bot',
-              senderName: 'Designer Store Bot',
-              time: '18:45',
-              content: '✅ **ĐƠN HÀNG [DS00000] ĐÃ HOÀN TẤT VÀ ĐÓNG KHUNG CHAT.** Lịch sử giao dịch đã được xuất thành Transcript an toàn!'
-            }
-          ]
-        },
-        'DS00001': {
-          orderCode: 'DS00001',
-          productName: 'Gemini 18 Tháng + 5TB',
-          price: '160.000 đ',
-          amountRaw: 160000,
-          status: 'DISCUSSING',
-          createdAt: '19:40',
-          customerName: 'Khách Hàng A',
-          customerEmail: 'khachhang@gmail.com',
-          unreadForAdmin: 1,
-          unreadForCustomer: 0,
-          feedback: null,
-          messages: [
-            {
-              sender: 'bot',
-              senderName: 'Designer Store Bot',
-              time: '19:40',
-              content: 'Chào bạn! Đơn hàng **[DS00001]** cho **Gemini 18 Tháng + 5TB** đã được khởi tạo. Admin **Designer** sẽ hỗ trợ tư vấn và gửi mã QR thanh toán tại đây!'
-            },
-            {
-              sender: 'customer',
-              senderName: 'Khách Hàng A',
-              time: '19:41',
-              content: 'Shop ơi tư vấn giúp em cách liên kết tài khoản Gemini 18T + 5TB này với ạ! Em có gửi ảnh chụp màn hình gói hiện tại bên dưới:'
-            },
-            {
-              sender: 'customer',
-              senderName: 'Khách Hàng A',
-              time: '19:42',
-              content: 'Ảnh chụp màn hình trang quản lý dung lượng Google Drive của em:',
-              attachment: {
-                type: 'image',
-                name: 'screenshot_google_drive.jpg',
-                sizeFormatted: '185 KB',
-                dataUrl: './menu_banner.jpg'
-              }
-            }
-          ]
-        },
-        'DS00002': {
-          orderCode: 'DS00002',
-          productName: 'Nitro Boost 2 Tháng (2M)',
-          price: '85.000 đ',
-          amountRaw: 85000,
-          status: 'PENDING',
-          createdAt: '19:35',
-          customerName: 'Khách Hàng A',
-          customerEmail: 'khachhang@gmail.com',
-          unreadForAdmin: 0,
-          unreadForCustomer: 1,
-          feedback: null,
-          messages: [
-            {
-              sender: 'bot',
-              senderName: 'Designer Store Bot',
-              time: '19:35',
-              content: 'Chào bạn! Đơn hàng **[DS00002]** cho **Nitro Boost 2 Tháng (2M)** đã được tạo.'
-            },
-            {
-              sender: 'admin',
-              senderName: '🛡️ Admin Designer',
-              type: 'qr_card',
-              time: '19:36',
-              vietQrUrl: 'https://img.vietqr.io/image/971025-PSP2626514800000039-compact.png?amount=85000&addInfo=NITRO%202M%20DS00002&accountName=NGO%20QUANG%20DINH',
-              amountRaw: 85000,
-              amountFormatted: '85.000 ₫',
-              memo: 'NITRO 2M DS00002'
-            }
-          ]
-        },
-        'DS00003': {
-          orderCode: 'DS00003',
-          productName: 'Deco Log (Profile Effect)',
-          price: '20.000 đ',
-          amountRaw: 20000,
-          status: 'PROCESSING',
-          createdAt: '19:20',
-          customerName: 'Khách Hàng A',
-          customerEmail: 'khachhang@gmail.com',
-          unreadForAdmin: 0,
-          unreadForCustomer: 0,
-          feedback: null,
-          queueInfo: {
-            position: 13,
-            total: 15,
-            waitingAhead: 12,
-            estimatedMins: 5,
-            progressPercent: 20,
-            confirmedAt: '19:22'
-          },
-          messages: [
-            {
-              sender: 'bot',
-              senderName: 'Designer Store Bot',
-              time: '19:20',
-              content: 'Chào bạn! Đơn hàng **[DS00003]** cho **Deco Log** đã được tạo.'
-            },
-            {
-              sender: 'admin',
-              senderName: '🛡️ Admin Designer',
-              type: 'qr_card',
-              time: '19:21',
-              vietQrUrl: 'https://img.vietqr.io/image/971025-PSP2626514800000039-compact.png?amount=20000&addInfo=DECO%20DS00003&accountName=NGO%20QUANG%20DINH',
-              amountRaw: 20000,
-              amountFormatted: '20.000 ₫',
-              memo: 'DECO DS00003'
-            },
-            {
-              sender: 'bot',
-              senderName: 'Designer Store Bot',
-              type: 'payment_confirmed_card',
-              time: '19:22',
-              orderCode: 'DS00003',
-              productName: 'Deco Log (Profile Effect)',
-              price: '20.000 đ',
-              amountFormatted: '20.000 ₫',
-              memo: 'DECO DS00003',
-              customerName: 'Khách Hàng A',
-              confirmedAt: '19:22',
-              queuePosition: 13,
-              queueTotal: 15,
-              waitingAhead: 12,
-              estimatedMins: 5,
-              progressPercent: 20
-            }
-          ]
-        },
-        'DS00004': {
-          orderCode: 'DS00004',
-          productName: 'Nitro Boost 1 Năm (12M)',
-          price: '879.000 đ',
-          amountRaw: 879000,
-          status: 'WAITING_LEGIT',
-          createdAt: '19:10',
-          customerName: 'Khách Hàng A',
-          customerEmail: 'khachhang@gmail.com',
-          unreadForAdmin: 0,
-          unreadForCustomer: 1,
-          feedback: null,
-          messages: [
-            {
-              sender: 'bot',
-              senderName: 'Designer Store Bot',
-              time: '19:10',
-              content: 'Chào bạn! Đơn hàng **[DS00004]** cho **Nitro Boost 1 Năm (12M)** đã được tạo.'
-            },
-            {
-              sender: 'admin',
-              senderName: '🛡️ Admin Designer',
-              type: 'order_done_card',
-              time: '19:15'
-            }
-          ]
-        }
-      },
+      currentOrderCode: null,
+      currentTranscriptOrderCode: null,
+      currentNotepadOrderCode: null,
+      pendingAttachment: null,
+      ordersLayout: 'columns',
+      orderSeq: 0,
+      queueSequence: 1,
+      queueTotal: 0,
+      orders: {},
       feedbacks: [
         {
           customerName: 'Hoàng Long',
@@ -2807,13 +2561,6 @@
     }
 
     const DEFAULT_STORE_USERS = {
-      'khachhang@gmail.com': {
-        email: 'khachhang@gmail.com',
-        name: 'Khách Hàng A',
-        password: '123456',
-        createdAt: '14/10/2026, 18:30:00',
-        role: 'customer'
-      },
       'admin@designerstore.vn': {
         email: 'admin@designerstore.vn',
         name: 'Admin Designer',
