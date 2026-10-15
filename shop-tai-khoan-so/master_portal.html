@@ -1,0 +1,2822 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>👑 MASTER ADMIN PORTAL - Trung Tâm Điều Hành Tối Cao | Designer Store</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js cho biểu đồ thống kê doanh thu -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0c0e15; }
+    ::-webkit-scrollbar-thumb { background: #262c3e; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #ef4444; }
+    .animate-fade-in { animation: fadeIn 0.25s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .gold-glow { text-shadow: 0 0 12px rgba(245, 158, 11, 0.5); }
+    .neon-red-glow { text-shadow: 0 0 12px rgba(239, 68, 68, 0.5); }
+    .card-glass { background: rgba(18, 22, 33, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(42, 51, 74, 0.6); }
+    .card-glass:hover { border-color: rgba(239, 68, 68, 0.4); }
+  </style>
+</head>
+<body class="bg-[#090b10] text-slate-100 antialiased min-h-screen flex flex-col font-sans selection:bg-red-600 selection:text-white">
+
+  <!-- ================= 1. MASTER AUTH GATE (MÀN HÌNH MÃ KHÓA BẢO MẬT) ================= -->
+  <div id="masterAuthGate" class="fixed inset-0 z-50 bg-[#07090e] flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-[#111520] border-2 border-red-500/50 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden animate-fade-in">
+      <div class="absolute -top-24 -right-24 w-48 h-48 bg-red-600/15 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="text-center mb-6 relative">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 via-red-600 to-rose-600 p-0.5 mx-auto mb-3 shadow-xl shadow-red-600/30 flex items-center justify-center">
+          <div class="w-full h-full bg-[#0d1018] rounded-2xl flex items-center justify-center text-3xl">
+            👑
+          </div>
+        </div>
+        <div class="flex items-center justify-center gap-2 mb-1">
+          <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-red-600/20 text-red-400 font-extrabold border border-red-500/40 uppercase tracking-widest">SUPER ADMIN ONLY</span>
+          <span class="text-xs text-amber-400 font-bold">🔒 Khóa Tối Cao</span>
+        </div>
+        <h2 id="masterLoginBrandTitle" class="text-2xl font-black text-white tracking-tight">MASTER ADMIN PORTAL</h2>
+        <p id="masterLoginBrandDesc" class="text-xs text-slate-400 mt-1">Khu vực điều hành tối cao dành riêng cho Chủ Shop Designer Store. Vui lòng nhập Master Passcode để mở khóa.</p>
+      </div>
+
+      <form onsubmit="event.preventDefault(); verifyMasterPasscode(); return false;" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+            <span>MÃ BẢO MẬT CHỦ SHOP (PASSCODE)</span>
+            <span class="text-[10px] text-slate-500">Mã bảo mật: <strong class="text-amber-400 font-mono">180308</strong></span>
+          </label>
+          <div class="relative">
+            <input type="password" id="masterPinInput" maxlength="12" placeholder="••••••••" class="w-full text-center text-xl tracking-[0.4em] font-mono bg-[#181d2c] border-2 border-[#2b354c] focus:border-red-500 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-red-500 shadow-inner transition-colors">
+            <button type="button" onclick="togglePasscodeVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white p-1">
+              👁️
+            </button>
+          </div>
+        </div>
+
+        <div id="masterAuthError" class="hidden p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-red-300 text-center font-medium"></div>
+
+        <button type="submit" class="w-full py-3 bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-black text-xs rounded-xl shadow-lg shadow-red-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95">
+          <span>🚀 XÁC THỰC & MỞ CỔNG QUẢN TRỊ TỐI CAO</span>
+        </button>
+
+        <div class="text-center pt-2">
+          <a href="./index.html" class="text-xs text-slate-400 hover:text-white transition-colors inline-flex items-center gap-1">
+            <span>← Quay lại Trang Shop Bán Hàng</span>
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= 2. MASTER PORTAL MAIN INTERFACE ================= -->
+  <div id="masterMainUI" class="hidden flex-1 flex flex-col">
+
+    <!-- MASTER TOP HEADER -->
+    <header class="border-b border-[#202738] bg-[#0e111a]/95 backdrop-blur-md px-4 sm:px-6 py-3 sticky top-0 z-30 shadow-2xl flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-red-600 p-0.5 shadow-md shadow-red-600/30 flex items-center justify-center">
+          <div class="w-full h-full bg-[#121622] rounded-[10px] flex items-center justify-center text-xl">
+            👑
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-black text-base sm:text-lg leading-tight tracking-tight text-white flex items-center gap-2">
+              <span id="masterHeaderShopTitle">DESIGNER STORE</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 to-red-500/20 text-amber-300 font-extrabold border border-amber-500/40">SUPER ADMIN</span>
+            </h1>
+          </div>
+          <p class="text-[11px] text-slate-400 flex items-center gap-2">
+            <span class="text-emerald-400 font-semibold flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Đồng Bộ Thời Gian Thực
+            </span>
+            <span class="text-slate-600">•</span>
+            <span id="headerLiveClock" class="font-mono text-slate-300">--:--:--</span>
+          </p>
+        </div>
+        <!-- NÚT 3 GẠCH MENU QUẢN TRỊ (HAMBURGER ☰) TÍCH HỢP TẤT CẢ CẤU HÌNH -->
+        <div class="flex items-center gap-2 pl-2 sm:pl-3 ml-1 sm:ml-2 border-l border-[#202738]">
+          <button id="masterHamburgerBtn" onclick="toggleMasterNavDrawer()" class="px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white shadow-lg shadow-red-600/30 flex items-center gap-2 border border-red-500/50 cursor-pointer transition-all active:scale-95" title="Mở danh mục điều hướng & cấu hình hệ thống">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            <span class="hidden sm:inline">Menu Quản Trị (☰)</span>
+            <span class="sm:hidden font-mono font-bold">☰</span>
+          </button>
+          
+          <div class="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#141824] border border-[#222a3c] text-xs">
+            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Đang xem:</span>
+            <span id="headerCurrentTabBadge" class="font-extrabold text-amber-300 flex items-center gap-1">
+              <span>📊</span>
+              <span>Tổng Quan & KPI</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Header Actions -->
+      <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+        <!-- CỤM TRẠNG THÁI & NÚT GẠT BẬT / TẮT BẢO TRÌ SIÊU TRỰC QUAN -->
+        <div class="flex items-center gap-2.5 bg-[#121624] border border-[#232b3e] px-3 py-1.5 rounded-2xl shadow-inner">
+          <div class="text-left flex flex-col justify-center">
+            <span class="text-[9px] uppercase tracking-wider text-slate-400 font-extrabold leading-none">TRẠNG THÁI WEB</span>
+            <div id="quickMaintenanceStatusBadge" class="text-xs font-black flex items-center gap-1.5 text-emerald-400 font-mono mt-0.5 leading-none">
+              <span id="quickMaintenanceDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="quickMaintenanceStatusText">ĐANG MỞ BÁN</span>
+            </div>
+          </div>
+
+          <button id="quickMaintenanceBtn" onclick="toggleQuickMaintenance()" class="px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 border bg-emerald-500/15 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/25 active:scale-95 shadow-sm" title="Bấm để Chuyển Đổi Trạng Thái Bảo Trì">
+            <!-- Công tắc gạt chuyển động -->
+            <div id="quickMaintenanceTrack" class="w-9 h-5 bg-slate-700 rounded-full p-0.5 transition-all flex items-center">
+              <div id="quickMaintenanceKnob" class="w-4 h-4 bg-white rounded-full shadow-md transition-transform translate-x-0"></div>
+            </div>
+            <span id="quickMaintenanceActionText">Bật Bảo Trì</span>
+          </button>
+        </div>
+
+        <a href="./index.html" target="_blank" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#171b28] hover:bg-[#202738] border border-[#2b354a] text-slate-200 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer" title="Mở trang bán hàng trong tab mới">
+          <span>🛍️ Mở Web Shop</span>
+          <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+
+        <button onclick="lockMasterPortal()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 flex items-center gap-1.5 transition-all cursor-pointer" title="Khóa màn hình ngay lập tức">
+          <span>🔒 Khóa Cổng</span>
+        </button>
+
+        <button onclick="logoutMasterPortal()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-red-600/15 hover:bg-red-600/25 border border-red-500/40 text-red-400 hover:text-red-300 flex items-center gap-1.5 transition-all cursor-pointer" title="Đăng xuất khỏi Master Portal">
+          <span>Đăng Xuất</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- MODAL / DRAWER MENU QUẢN TRỊ 3 GẠCH (☰) TÍCH HỢP TOÀN BỘ CẤU HÌNH -->
+    <div id="masterNavDrawerBackdrop" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm transition-opacity flex justify-start animate-fade-in" onclick="handleMasterNavBackdropClick(event)">
+      <div id="masterNavDrawer" class="w-full max-w-sm sm:max-w-md h-full bg-[#0d101a] border-r border-[#202738] shadow-2xl flex flex-col transform transition-transform duration-300">
+        
+        <!-- Drawer Header -->
+        <div class="p-4 sm:p-5 border-b border-[#202738] flex items-center justify-between bg-[#111624]">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-red-600 p-0.5 flex items-center justify-center">
+              <div class="w-full h-full bg-[#121622] rounded-[9px] flex items-center justify-center text-lg">
+                👑
+              </div>
+            </div>
+            <div>
+              <h2 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-1.5"><span id="masterDrawerShopTitle">DESIGNER STORE</span> <span class="text-slate-400 font-normal text-xs">(☰)</span></h2>
+              <p class="text-[11px] text-slate-400">Chọn module để cấu hình & quản lý</p>
+            </div>
+          </div>
+          <button onclick="closeMasterNavDrawer()" class="w-8 h-8 rounded-xl bg-[#171c2b] hover:bg-[#222b40] text-slate-400 hover:text-white flex items-center justify-center transition-colors text-sm font-bold cursor-pointer" title="Đóng Menu">
+            ✕
+          </button>
+        </div>
+
+        <!-- Drawer Modules List -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-2">
+          <button onclick="selectMasterDrawerTab('dashboard')" id="tabBtn_dashboard" class="master-tab-btn active w-full p-3 rounded-xl font-bold transition-all bg-gradient-to-r from-red-600 to-rose-700 text-white shadow-lg shadow-red-600/30 border border-red-500/50 flex items-center justify-between cursor-pointer group">
+            <div class="flex items-center gap-3 text-left">
+              <div class="w-9 h-9 rounded-lg bg-black/25 flex items-center justify-center text-lg flex-shrink-0">📊</div>
+              <div>
+                <div class="text-xs font-black">Tổng Quan & KPI</div>
+                <div class="text-[10px] text-slate-300 font-normal">Thống kê doanh số, KPI và người dùng</div>
+              </div>
+            </div>
+            <span class="text-xs text-white opacity-80 group-hover:translate-x-1 transition-transform">➔</span>
+          </button>
+
+          <button onclick="selectMasterDrawerTab('config')" id="tabBtn_config" class="master-tab-btn w-full p-3 rounded-xl font-bold transition-all bg-[#141824] hover:bg-[#1d2334] text-slate-300 hover:text-white border border-[#232a3c] flex items-center justify-between cursor-pointer group">
+            <div class="flex items-center gap-3 text-left">
+              <div class="w-9 h-9 rounded-lg bg-black/25 flex items-center justify-center text-lg flex-shrink-0">🛠️</div>
+              <div>
+                <div class="text-xs font-black">Cấu Hình Thông Số Shop</div>
+                <div class="text-[10px] text-slate-400 font-normal">Tên shop, Zalo, Discord, Banner bảo trì</div>
+              </div>
+            </div>
+            <span class="text-xs text-slate-500 group-hover:text-white group-hover:translate-x-1 transition-transform">➔</span>
+          </button>
+
+          <button onclick="selectMasterDrawerTab('products')" id="tabBtn_products" class="master-tab-btn w-full p-3 rounded-xl font-bold transition-all bg-[#141824] hover:bg-[#1d2334] text-slate-300 hover:text-white border border-[#232a3c] flex items-center justify-between cursor-pointer group">
+            <div class="flex items-center gap-3 text-left">
+              <div class="w-9 h-9 rounded-lg bg-black/25 flex items-center justify-center text-lg flex-shrink-0">📦</div>
+              <div>
+                <div class="text-xs font-black">Quản Lý Menu & Sản Phẩm</div>
+                <div class="text-[10px] text-slate-400 font-normal">Gói tài khoản, bảng giá, kho hàng</div>
+              </div>
+            </div>
+            <span class="text-xs text-slate-500 group-hover:text-white group-hover:translate-x-1 transition-transform">➔</span>
+          </button>
+
+          <button onclick="selectMasterDrawerTab('users')" id="tabBtn_users" class="master-tab-btn w-full p-3 rounded-xl font-bold transition-all bg-[#141824] hover:bg-[#1d2334] text-slate-300 hover:text-white border border-[#232a3c] flex items-center justify-between cursor-pointer group">
+            <div class="flex items-center gap-3 text-left">
+              <div class="w-9 h-9 rounded-lg bg-black/25 flex items-center justify-center text-lg flex-shrink-0">👥</div>
+              <div>
+                <div class="text-xs font-black">Tài Khoản & Cấp Quyền Admin</div>
+                <div class="text-[10px] text-slate-400 font-normal">Quản lý người dùng, phân quyền Super Admin</div>
+              </div>
+            </div>
+            <span class="text-xs text-slate-500 group-hover:text-white group-hover:translate-x-1 transition-transform">➔</span>
+          </button>
+
+          <button onclick="selectMasterDrawerTab('audit')" id="tabBtn_audit" class="master-tab-btn w-full p-3 rounded-xl font-bold transition-all bg-[#141824] hover:bg-[#1d2334] text-slate-300 hover:text-white border border-[#232a3c] flex items-center justify-between cursor-pointer group">
+            <div class="flex items-center gap-3 text-left">
+              <div class="w-9 h-9 rounded-lg bg-black/25 flex items-center justify-center text-lg flex-shrink-0">📜</div>
+              <div>
+                <div class="text-xs font-black flex items-center gap-1.5">
+                  <span>Nhật Ký Đăng Nhập & IP</span>
+                  <span id="auditLiveBadge" class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                </div>
+                <div class="text-[10px] text-slate-400 font-normal">Giám sát hoạt động, IP máy từng giây (20/trang)</div>
+              </div>
+            </div>
+            <span class="text-xs text-slate-500 group-hover:text-white group-hover:translate-x-1 transition-transform">➔</span>
+          </button>
+
+          <button onclick="selectMasterDrawerTab('blacklist')" id="tabBtn_blacklist" class="master-tab-btn w-full p-3 rounded-xl font-bold transition-all bg-[#141824] hover:bg-[#1d2334] text-slate-300 hover:text-white border border-[#232a3c] flex items-center justify-between cursor-pointer group">
+            <div class="flex items-center gap-3 text-left">
+              <div class="w-9 h-9 rounded-lg bg-black/25 flex items-center justify-center text-lg flex-shrink-0">🛡️</div>
+              <div>
+                <div class="text-xs font-black">Chặn IP & Chống Gian Lận</div>
+                <div class="text-[10px] text-slate-400 font-normal">Danh sách đen Blacklist an ninh</div>
+              </div>
+            </div>
+            <span class="text-xs text-slate-500 group-hover:text-white group-hover:translate-x-1 transition-transform">➔</span>
+          </button>
+
+          <button onclick="selectMasterDrawerTab('vouchers')" id="tabBtn_vouchers" class="master-tab-btn w-full p-3 rounded-xl font-bold transition-all bg-[#141824] hover:bg-[#1d2334] text-slate-300 hover:text-white border border-[#232a3c] flex items-center justify-between cursor-pointer group">
+            <div class="flex items-center gap-3 text-left">
+              <div class="w-9 h-9 rounded-lg bg-black/25 flex items-center justify-center text-lg flex-shrink-0">🎟️</div>
+              <div>
+                <div class="text-xs font-black">Mã Giảm Giá (Voucher)</div>
+                <div class="text-[10px] text-slate-400 font-normal">Tạo mã ưu đãi, chiết khấu và lượt dùng</div>
+              </div>
+            </div>
+            <span class="text-xs text-slate-500 group-hover:text-white group-hover:translate-x-1 transition-transform">➔</span>
+          </button>
+
+          <button onclick="selectMasterDrawerTab('backup')" id="tabBtn_backup" class="master-tab-btn w-full p-3 rounded-xl font-bold transition-all bg-[#141824] hover:bg-[#1d2334] text-slate-300 hover:text-white border border-[#232a3c] flex items-center justify-between cursor-pointer group">
+            <div class="flex items-center gap-3 text-left">
+              <div class="w-9 h-9 rounded-lg bg-black/25 flex items-center justify-center text-lg flex-shrink-0">💾</div>
+              <div>
+                <div class="text-xs font-black">Sao Lưu & Phục Hồi</div>
+                <div class="text-[10px] text-slate-400 font-normal">Xuất và khôi phục toàn bộ dữ liệu</div>
+              </div>
+            </div>
+            <span class="text-xs text-slate-500 group-hover:text-white group-hover:translate-x-1 transition-transform">➔</span>
+          </button>
+        </div>
+
+        <!-- Drawer Footer -->
+        <div class="p-4 border-t border-[#202738] bg-[#111624] text-[11px] text-slate-400 flex items-center justify-between">
+          <span class="flex items-center gap-1.5 text-emerald-400 font-semibold">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Đồng bộ thời gian thực
+          </span>
+          <span class="font-mono text-slate-500">v2.5 Pro</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MAIN BODY CONTENT (WIDE SCREEN) -->
+    <main class="flex-1 w-full max-w-[1850px] mx-auto p-4 sm:p-6 lg:px-8 space-y-6">
+
+      <!-- ================= TAB 1: DASHBOARD & TỔNG QUAN KPI ================= -->
+      <div id="masterView_dashboard" class="space-y-6 animate-fade-in">
+
+        <!-- BANNER CẢNH BÁO BẢO TRÌ TRÊN DASHBOARD (NẾU ĐANG BẬT) -->
+        <div id="dashMaintenanceAlert" class="hidden card-glass border-2 border-rose-500/70 bg-gradient-to-r from-rose-950/40 via-[#18111e] to-rose-950/40 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl shadow-rose-950/30">
+          <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-2xl bg-rose-600/20 border border-rose-500/40 text-rose-400 flex items-center justify-center text-2xl flex-shrink-0 animate-bounce">
+              🛠️
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs px-2 py-0.5 rounded-md bg-rose-600 text-white font-extrabold uppercase animate-pulse">CHẾ ĐỘ BẢO TRÌ ĐANG BẬT</span>
+                <span class="text-xs text-rose-300 font-medium">Khách hàng đang nhìn thấy bảng thông báo bảo trì</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">Toàn bộ tính năng mua hàng trên web shop đang tạm khóa để bảo đảm an toàn.</p>
+            </div>
+          </div>
+          <button onclick="toggleQuickMaintenance()" class="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-900/40 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap active:scale-95">
+            <span>🟢 Mở Lại Web Bán Hàng Ngay</span>
+          </button>
+        </div>
+
+        <!-- 4 Thẻ KPI Metrics -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Card 1: Khách Online -->
+          <div class="card-glass rounded-2xl p-5 shadow-xl flex items-center justify-between">
+            <div>
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">KHÁCH ĐANG ONLINE</span>
+              <div class="flex items-baseline gap-2 mt-1">
+                <span id="kpiOnlineUsers" class="text-3xl font-black text-emerald-400 font-mono">1</span>
+                <span class="text-xs text-emerald-400 font-medium">hoạt động</span>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-1">Cập nhật từng giây qua Heartbeat</p>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-2xl font-bold">
+              🟢
+            </div>
+          </div>
+
+          <!-- Card 2: Doanh Thu Hoàn Tất -->
+          <div class="card-glass rounded-2xl p-5 shadow-xl flex items-center justify-between">
+            <div>
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">TỔNG DOANH THU HOÀN TẤT</span>
+              <div class="flex items-baseline gap-2 mt-1">
+                <span id="kpiTotalRevenue" class="text-2xl sm:text-3xl font-black text-amber-400 font-mono">0 ₫</span>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-1">Chỉ tính đơn đã hoàn thành</p>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-2xl font-bold">
+              💰
+            </div>
+          </div>
+
+          <!-- Card 3: Đơn Hàng Hoạt Động -->
+          <div class="card-glass rounded-2xl p-5 shadow-xl flex items-center justify-between">
+            <div>
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">ĐƠN ĐANG XỬ LÝ (TIẾN TRÌNH)</span>
+              <div class="flex items-baseline gap-2 mt-1">
+                <span id="kpiActiveOrders" class="text-3xl font-black text-cyan-400 font-mono">0</span>
+                <span class="text-xs text-cyan-400 font-medium">đang chạy</span>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-1">Trên bảng 4 cột Admin</p>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center text-2xl font-bold">
+              ⚡
+            </div>
+          </div>
+
+          <!-- Card 4: Tổng Số Admin / Bị Chặn -->
+          <div class="card-glass rounded-2xl p-5 shadow-xl flex items-center justify-between">
+            <div>
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">ADMINS & AN NINH</span>
+              <div class="flex items-baseline gap-3 mt-1">
+                <div>
+                  <span id="kpiAdminCount" class="text-2xl font-black text-red-400 font-mono">1</span>
+                  <span class="text-[10px] text-slate-400 block uppercase">Admin</span>
+                </div>
+                <div class="border-l border-slate-700 pl-3">
+                  <span id="kpiBlockedCount" class="text-2xl font-black text-rose-500 font-mono">0</span>
+                  <span class="text-[10px] text-slate-400 block uppercase">IP Bị Chặn</span>
+                </div>
+              </div>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-red-500/20 text-red-400 border border-red-500/30 flex items-center justify-center text-2xl font-bold">
+              🛡️
+            </div>
+          </div>
+        </div>
+
+        <!-- Biểu Đồ & Thống Kê Phân Tích -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 card-glass rounded-2xl p-5 space-y-3">
+            <div class="flex items-center justify-between border-b border-[#202738] pb-3">
+              <div>
+                <h3 class="font-bold text-white text-sm sm:text-base flex items-center gap-2">
+                  <span>📈 Phân Tích Doanh Thu Theo Dịch Vụ</span>
+                </h3>
+                <p class="text-xs text-slate-400">Doanh số thực tế ghi nhận từ các đơn COMPLETED</p>
+              </div>
+              <span class="text-xs px-2.5 py-1 rounded-lg bg-[#161c2a] text-slate-300 border border-[#252f44]">Realtime</span>
+            </div>
+            <div class="h-64 sm:h-72 flex items-center justify-center">
+              <canvas id="revenueBarChart"></canvas>
+            </div>
+          </div>
+
+          <div class="card-glass rounded-2xl p-5 space-y-3">
+            <div class="border-b border-[#202738] pb-3">
+              <h3 class="font-bold text-white text-sm sm:text-base flex items-center gap-2">
+                <span>🥧 Tỷ Trọng Sản Phẩm Bán Ra</span>
+              </h3>
+              <p class="text-xs text-slate-400">Tỷ lệ đơn hàng giữa các gói</p>
+            </div>
+            <div class="h-64 sm:h-72 flex items-center justify-center">
+              <canvas id="productPieChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= TAB 2: CẤU HÌNH THÔNG SỐ SHOP (STORE CMS) ================= -->
+      <div id="masterView_config" class="hidden space-y-6 animate-fade-in">
+        <div class="card-glass rounded-2xl p-5 sm:p-6 space-y-6">
+          <div class="flex items-center justify-between border-b border-[#202738] pb-4 flex-wrap gap-2">
+            <div>
+              <h3 class="text-lg font-black text-white flex items-center gap-2">
+                <span>🛠️ Cấu Hình Thông Số Toàn Diện Shop</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40">ĐỒNG BỘ TỨC THÌ</span>
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">Mọi thay đổi tại đây sẽ lập tức phản hồi sang trang web bán hàng của khách mà không cần reload trang.</p>
+            </div>
+            <button onclick="saveShopConfig()" class="px-5 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-black text-xs rounded-xl shadow-lg shadow-red-600/30 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95">
+              <span>💾 Lưu Cấu Hình & Đồng Bộ Ngay</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
+            <!-- Cột 1: Thông Tin Thương Hiệu -->
+            <div class="space-y-4 bg-[#10141f] border border-[#21293a] p-4 rounded-xl">
+              <h4 class="font-bold text-white uppercase tracking-wider text-xs flex items-center gap-2 text-red-400">
+                <span>🏢 1. THƯƠNG HIỆU & TIÊU ĐỀ</span>
+              </h4>
+
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Tên Cửa Hàng (Shop Name)</label>
+                <input type="text" id="cfgShopName" value="DESIGNER STORE" class="w-full bg-[#171c2b] border border-[#28334a] rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-red-500">
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Khẩu Hiệu / Slogan</label>
+                <input type="text" id="cfgShopSlogan" value="OFFICIAL SERVICE • Giao dịch 24/7" class="w-full bg-[#171c2b] border border-[#28334a] rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-red-500">
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Mô Tả Phụ / Dịch Vụ Cung Cấp</label>
+                <input type="text" id="cfgShopSubDesc" value="Gemini AI • Discord Nitro • Deco Profile" class="w-full bg-[#171c2b] border border-[#28334a] rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-red-500">
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Đường Dẫn Ảnh Avatar Shop (URL)</label>
+                <input type="text" id="cfgShopAvatarUrl" value="./avatar.jpg" class="w-full bg-[#171c2b] border border-[#28334a] rounded-xl px-3.5 py-2 text-white font-mono focus:outline-none focus:border-red-500">
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Đường Dẫn Ảnh Banner Menu (URL)</label>
+                <input type="text" id="cfgShopBannerUrl" value="./menu_banner.jpg" class="w-full bg-[#171c2b] border border-[#28334a] rounded-xl px-3.5 py-2 text-white font-mono focus:outline-none focus:border-red-500">
+              </div>
+            </div>
+
+            <!-- Cột 2: Cấu Hình Thanh Toán & Liên Hệ -->
+            <div class="space-y-4 bg-[#10141f] border border-[#21293a] p-4 rounded-xl">
+              <h4 class="font-bold text-white uppercase tracking-wider text-xs flex items-center gap-2 text-amber-400">
+                <span>💳 2. THANH TOÁN & LIÊN HỆ</span>
+              </h4>
+
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Số Tài Khoản / Ví MoMo</label>
+                <input type="text" id="cfgMomoNumber" value="PSP2626514800000039" class="w-full bg-[#171c2b] border border-[#28334a] rounded-xl px-3.5 py-2 text-white font-mono font-bold text-amber-400 focus:outline-none focus:border-amber-500">
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Tên Người Thụ Hưởng (Chủ Ví)</label>
+                <input type="text" id="cfgMomoName" value="DESIGNER STORE / HOANG LONG" class="w-full bg-[#171c2b] border border-[#28334a] rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-500">
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Ảnh Mã QR MoMo (URL)</label>
+                <input type="text" id="cfgMomoQrUrl" value="./momo_qr.png" class="w-full bg-[#171c2b] border border-[#28334a] rounded-xl px-3.5 py-2 text-white font-mono focus:outline-none focus:border-amber-500">
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Nick Discord Hỗ Trợ (Admin CSKH)</label>
+                <input type="text" id="cfgDiscordContact" value="designer0102" class="w-full bg-[#171c2b] border border-[#28334a] rounded-xl px-3.5 py-2 text-white font-mono focus:outline-none focus:border-amber-500">
+              </div>
+
+              <div class="pt-2 border-t border-[#202738]">
+                <label class="block font-semibold text-slate-300 mb-1 flex items-center justify-between">
+                  <span>Mã PIN Bảo Mật Master Portal</span>
+                  <span class="text-[10px] text-amber-400 font-bold">Mặc định: 180308</span>
+                </label>
+                <div class="flex gap-2">
+                  <input type="text" id="cfgMasterPin" value="180308" maxlength="12" class="w-full bg-[#171c2b] border border-[#28334a] rounded-xl px-3.5 py-2 text-white font-mono font-bold tracking-widest focus:outline-none focus:border-red-500">
+                  <button type="button" onclick="updateMasterPinFromConfig()" class="px-3.5 py-2 bg-[#1d2334] hover:bg-[#28324a] text-slate-200 hover:text-white border border-[#2b374e] rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap">
+                    Đổi PIN
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Card Cấu hình Chế độ bảo trì riêng biệt & Nâng cao -->
+          <div class="card-glass rounded-2xl p-5 space-y-4 border-2 border-amber-500/40 bg-gradient-to-br from-[#121622] via-[#161b28] to-[#121622] shadow-xl">
+            <div class="flex items-center justify-between border-b border-[#202738] pb-3 flex-wrap gap-2">
+              <div class="flex items-center gap-2.5">
+                <span class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500/20 to-red-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-lg font-bold">
+                  🛠️
+                </span>
+                <div>
+                  <h3 class="font-bold text-white text-sm sm:text-base flex items-center gap-2">
+                    <span>CHẾ ĐỘ BẢO TRÌ WEB BÁN HÀNG</span>
+                    <span id="tabCfgMaintBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30 uppercase">ĐANG TẮT</span>
+                  </h3>
+                  <p class="text-xs text-slate-400">Kiểm soát bật/tắt bảng thông báo bảo trì toàn màn hình trên trang shop</p>
+                </div>
+              </div>
+              <button type="button" onclick="toggleQuickMaintenance()" id="tabCfgMaintToggleBtn" class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-md bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/25 active:scale-95 flex items-center gap-1.5">
+                <span>⚡ Bật Bảo Trì Ngay</span>
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Trạng Thái Chế Độ Bảo Trì</label>
+                <select id="cfgMaintenanceMode" onchange="onMaintenanceSelectChange(this.value)" class="w-full bg-[#171c2b] border border-[#28334a] rounded-xl px-3.5 py-2 text-white font-bold focus:outline-none focus:border-red-500">
+                  <option value="false">🟢 Hoạt Động Bình Thường (Web Đang Mở Cho Khách)</option>
+                  <option value="true">🔴 Đang Bật Bảo Trì (Khách Nhìn Thấy Bảng Thông Báo)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Thời Gian Dự Kiến Mở Lại</label>
+                <input type="text" id="cfgMaintenanceEta" value="Sẽ sớm mở lại trong ít phút" class="w-full bg-[#171c2b] border border-[#28334a] rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-500" placeholder="Ví dụ: Dự kiến hoàn tất lúc 18:30 hôm nay">
+              </div>
+
+              <div class="sm:col-span-2">
+                <label class="block font-semibold text-slate-300 mb-1">Nội Dung / Lời Nhắn Trên Bảng Thông Báo Bảo Trì</label>
+                <textarea id="cfgMaintenanceMsg" rows="2" class="w-full bg-[#171c2b] border border-[#28334a] rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-500 resize-none leading-relaxed" placeholder="Designer Store đang tiến hành bảo trì định kỳ, nâng cấp máy chủ và tối ưu hóa hệ thống thanh toán để phục vụ quý khách tốt nhất."></textarea>
+                <p class="text-[11px] text-slate-500 mt-1">Dòng chữ này sẽ xuất hiện to rõ ràng giữa màn hình của khách hàng khi họ truy cập trang web bán hàng.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Thông Báo Marquee Toàn Shop -->
+          <div class="bg-[#10141f] border border-[#21293a] p-4 rounded-xl space-y-2 text-xs">
+            <label class="block font-bold text-white uppercase text-xs">📢 Dòng Chữ Thông Báo Chạy Trên Đầu Web (Marquee)</label>
+            <input type="text" id="cfgMarqueeText" value="🔥 KHUYẾN MÃI THÁNG NÀY: Mua Discord Nitro 2 Tháng chỉ thêm 5K (+5K X2) • Gemini AI 18 Tháng tặng kèm 5TB Cloud bảo hành trọn gói!" class="w-full bg-[#171c2b] border border-[#28334a] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-red-500">
+            <p class="text-[11px] text-slate-500">Để trống nếu không muốn hiển thị dòng chữ chạy trên đầu trang.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= TAB 3: QUẢN LÝ MENU & SẢN PHẨM (CATALOG CMS) ================= -->
+      <div id="masterView_products" class="hidden space-y-6 animate-fade-in">
+        <div class="card-glass rounded-2xl p-5 sm:p-6 space-y-5">
+          <div class="flex items-center justify-between border-b border-[#202738] pb-4 flex-wrap gap-3">
+            <div>
+              <h3 class="text-lg font-black text-white flex items-center gap-2">
+                <span>📦 Quản Lý Danh Mục Sản Phẩm & Bảng Giá Menu</span>
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">Chỉnh sửa giá tiền, thông số kỹ thuật, bảo hành hoặc thêm gói sản phẩm mới vào trang shop.</p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <button onclick="openProductEditModal(null)" class="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
+                <span>➕ Thêm Gói Mới</span>
+              </button>
+              <button onclick="resetDefaultProducts()" class="px-3.5 py-2 bg-[#171c28] hover:bg-[#22293a] border border-[#273248] text-slate-300 hover:text-white text-xs font-bold rounded-xl transition-all cursor-pointer">
+                <span>Khôi Phục Mặc Định</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Lưới các gói dịch vụ -->
+          <div id="masterProductsList" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+        </div>
+      </div>
+
+      <!-- ================= TAB 4: QUẢN LÝ TÀI KHOẢN & CẤP QUYỀN ADMIN ================= -->
+      <div id="masterView_users" class="hidden space-y-6 animate-fade-in">
+        <div class="card-glass rounded-2xl p-5 sm:p-6 space-y-5">
+          <div class="flex items-center justify-between border-b border-[#202738] pb-4 flex-wrap gap-3">
+            <div>
+              <h3 class="text-lg font-black text-white flex items-center gap-2">
+                <span>👥 Quản Lý Người Dùng & Cấp Quyền Admin Trực Ca</span>
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">Cấp hoặc tước quyền Admin 1-click, can thiệp điều chỉnh cấp bậc VIP và số tiền tích lũy của khách hàng.</p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <input type="text" id="userSearchInput" oninput="filterUserList(this.value)" placeholder="🔍 Tìm email, tên..." class="bg-[#151a28] border border-[#273248] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-red-500 w-48 sm:w-60">
+              <button onclick="openCreateUserModal()" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
+                <span>➕ Thêm Tài Khoản</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Bảng danh sách người dùng -->
+          <div class="overflow-x-auto rounded-xl border border-[#22293c]">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-[#101420] text-slate-400 font-bold uppercase text-[11px] border-b border-[#22293c]">
+                <tr>
+                  <th class="px-4 py-3">TÀI KHOẢN / EMAIL</th>
+                  <th class="px-4 py-3">TÊN HIỂN THỊ</th>
+                  <th class="px-4 py-3">VAI TRÒ (ROLE)</th>
+                  <th class="px-4 py-3">TỔNG MUA (SPENT)</th>
+                  <th class="px-4 py-3">CẤP BẬC VIP</th>
+                  <th class="px-4 py-3 text-right">THAO TÁC</th>
+                </tr>
+              </thead>
+              <tbody id="masterUsersTableBody" class="divide-y divide-[#1c2233]"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= TAB 5: NHẬT KÝ ĐĂNG NHẬP & GIÁM SÁT IP TỪNG GIÂY ================= -->
+      <div id="masterView_audit" class="hidden space-y-6 animate-fade-in">
+        <div class="card-glass rounded-2xl p-5 sm:p-6 space-y-5">
+          <div class="flex items-center justify-between border-b border-[#202738] pb-4 flex-wrap gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-lg font-black text-white">📜 Nhật Ký Đăng Nhập & Giám Sát IP Từng Phút Từng Giây</h3>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-extrabold border border-emerald-500/40 animate-pulse">LIVE MONITOR</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">Ghi nhận chính xác mốc thời gian đăng nhập/đăng xuất, IP máy, thiết bị, hệ điều hành và trình duyệt của mọi người dùng.</p>
+            </div>
+
+            <div class="flex items-center gap-2 flex-wrap">
+              <button onclick="exportAuditLogsCsv()" class="px-3.5 py-1.5 bg-[#171b28] hover:bg-[#202738] border border-[#273248] text-slate-200 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer" title="Tải file đối soát CSV">
+                <span>📥 Xuất CSV</span>
+              </button>
+              <button onclick="clearAuditLogs()" class="px-3 py-1.5 bg-red-950/40 hover:bg-red-900/60 border border-red-500/30 text-red-300 text-xs font-bold rounded-xl transition-all cursor-pointer">
+                <span>🗑️ Xóa Lịch Sử</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Thanh Tìm Kiếm & Lọc Nhật Ký Siêu Cấp -->
+          <div class="flex items-center justify-between gap-3 flex-wrap bg-[#10141f] border border-[#202738] p-3 rounded-xl text-xs">
+            <div class="flex items-center gap-2 flex-wrap flex-1">
+              <div class="relative flex-1 min-w-[220px] max-w-md">
+                <input type="text" id="auditSearchInput" oninput="filterAuditLogs()" placeholder="🔍 Tìm kiếm Email, tên khách, IP, nội dung chi tiết..." class="w-full bg-[#171c2b] border border-[#28334a] rounded-xl pl-3 pr-8 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500 font-medium">
+                <span id="auditClearSearchBtn" onclick="clearAuditSearchInput()" class="hidden absolute right-2.5 top-2 text-slate-400 hover:text-white cursor-pointer font-bold text-xs">✕</span>
+              </div>
+              <select id="auditActionFilter" onchange="filterAuditLogs()" class="bg-[#171c2b] border border-[#28334a] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500 font-semibold cursor-pointer">
+                <option value="all">🔍 Tất cả hành động (Toàn bộ)</option>
+                <option value="REGISTER_VERIFIED">📝 Đăng ký tài khoản thành công</option>
+                <option value="OTP_REQUEST">📩 Yêu cầu gửi mã OTP Gmail</option>
+                <option value="LOGIN">🔑 Đăng nhập (LOGIN)</option>
+                <option value="LOGOUT">🚪 Đăng xuất (LOGOUT)</option>
+                <option value="PURCHASE_CONFIRM">🛒 Đặt mua gói sản phẩm</option>
+                <option value="ORDER_COMPLETED">✅ Hoàn tất đơn hàng thành công</option>
+                <option value="FEEDBACK_SUBMIT">⭐ Đánh giá đơn hàng (Review)</option>
+                <option value="ONLINE_VISIT">🌐 Truy cập web cửa hàng</option>
+                <option value="MAINTENANCE_TOGGLE">🛠️ Bật / Tắt bảo trì web</option>
+                <option value="SUPPORT_CHAT_OPEN">💬 Mở chat hỗ trợ CSKH 24/7</option>
+                <option value="BLOCKED">🚫 Bị chặn IP / An ninh</option>
+              </select>
+            </div>
+            <div class="text-slate-400 text-[11px] font-mono flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span>Tổng số: <strong id="auditTotalCount" class="text-emerald-400 font-bold">0</strong> hoạt động</span>
+            </div>
+          </div>
+
+          <!-- Bảng Nhật Ký Thời Gian Thực Đầy Đủ Chi Tiết (Hiển thị 20 hoạt động / trang) -->
+          <div class="overflow-x-auto rounded-xl border border-[#22293c]">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-[#101420] text-slate-400 font-bold uppercase text-[11px] border-b border-[#22293c]">
+                <tr>
+                  <th class="px-4 py-3 whitespace-nowrap">THỜI GIAN</th>
+                  <th class="px-4 py-3 whitespace-nowrap">HÀNH ĐỘNG</th>
+                  <th class="px-4 py-3">NGƯỜI DÙNG / EMAIL</th>
+                  <th class="px-4 py-3 min-w-[240px]">NỘI DUNG CHI TIẾT HOẠT ĐỘNG</th>
+                  <th class="px-4 py-3 whitespace-nowrap">ĐỊA CHỈ IP</th>
+                  <th class="px-4 py-3 whitespace-nowrap">THIẾT BỊ</th>
+                  <th class="px-4 py-3 text-right whitespace-nowrap">XỬ LÝ AN NINH</th>
+                </tr>
+              </thead>
+              <tbody id="masterAuditTableBody" class="divide-y divide-[#1c2233]"></tbody>
+            </table>
+          </div>
+
+          <!-- Thanh Phân Trang Chuẩn 20 Hoạt Động / Trang -->
+          <div id="masterAuditPagination" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-[#202738] text-xs"></div>
+        </div>
+      </div>
+
+      <!-- ================= TAB 6: CHẶN IP & CHỐNG GIAN LẬN (BLACKLIST) ================= -->
+      <div id="masterView_blacklist" class="hidden space-y-6 animate-fade-in">
+        <div class="card-glass rounded-2xl p-5 sm:p-6 space-y-5">
+          <div class="border-b border-[#202738] pb-4">
+            <h3 class="text-lg font-black text-white flex items-center gap-2">
+              <span>🛡️ Trung Tâm An Ninh & Danh Sách Đen (IP Blacklist)</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">Những địa chỉ IP hoặc Email nằm trong danh sách này sẽ bị từ chối truy cập hoàn toàn vào trang web bán hàng.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <!-- Form Thêm IP Chặn -->
+            <div class="bg-[#101420] border border-rose-500/30 p-4 rounded-2xl space-y-3.5 text-xs">
+              <h4 class="font-bold text-white text-xs uppercase text-rose-400 flex items-center gap-1.5">
+                <span>🚫 THÊM ĐỐI TƯỢNG VÀO DANH SÁCH ĐEN</span>
+              </h4>
+
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Loại chặn</label>
+                <select id="blTypeInput" class="w-full bg-[#181d2c] border border-[#29344c] rounded-xl px-3 py-2 text-white">
+                  <option value="ip">Địa chỉ IP Máy</option>
+                  <option value="email">Tài khoản Email</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Giá trị (Địa chỉ IP hoặc Email)</label>
+                <input type="text" id="blValueInput" placeholder="Ví dụ: 113.161.72.19 hoặc spam@bad.com" class="w-full bg-[#181d2c] border border-[#29344c] rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-red-500">
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Lý do chặn</label>
+                <input type="text" id="blReasonInput" placeholder="Ví dụ: Spam tạo đơn ảo, bot phá hoại..." class="w-full bg-[#181d2c] border border-[#29344c] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-red-500">
+              </div>
+
+              <button onclick="addBlacklistEntry()" class="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all cursor-pointer">
+                <span>Khóa Ngay Đối Tượng Này</span>
+              </button>
+            </div>
+
+            <!-- Danh Sách IP Bị Chặn -->
+            <div class="md:col-span-2 space-y-3">
+              <div class="flex items-center justify-between pb-1">
+                <span class="text-xs font-bold text-slate-300 uppercase">DANH SÁCH ĐANG BỊ TỪ CHỐI TRUY CẬP</span>
+                <span id="blCountBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-bold border border-rose-500/40">0 đối tượng</span>
+              </div>
+              <div id="masterBlacklistItems" class="space-y-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= TAB 7: QUẢN LÝ MÃ GIẢM GIÁ (VOUCHERS) ================= -->
+      <div id="masterView_vouchers" class="hidden space-y-6 animate-fade-in">
+        <div class="card-glass rounded-2xl p-5 sm:p-6 space-y-5">
+          <div class="flex items-center justify-between border-b border-[#202738] pb-4 flex-wrap gap-3">
+            <div>
+              <h3 class="text-lg font-black text-white flex items-center gap-2">
+                <span>🎟️ Hệ Thống Quản Lý Mã Khuyến Mãi (Voucher / Giftcode)</span>
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">Tạo mã ưu đãi cho khách áp dụng giảm giá trực tiếp khi xác nhận mua hàng trong modal.</p>
+            </div>
+            <button onclick="openCreateVoucherModal()" class="px-4 py-2 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
+              <span>➕ Tạo Voucher Mới</span>
+            </button>
+          </div>
+
+          <div id="masterVouchersGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+      </div>
+
+      <!-- ================= TAB 8: SAO LƯU & PHỤC HỒI HỆ THỐNG (BACKUP) ================= -->
+      <div id="masterView_backup" class="hidden space-y-6 animate-fade-in">
+        <div class="card-glass rounded-2xl p-5 sm:p-6 space-y-5">
+          <div class="border-b border-[#202738] pb-4">
+            <h3 class="text-lg font-black text-white flex items-center gap-2">
+              <span>💾 Sao Lưu & Phục Hồi Dữ Liệu An Toàn Toàn Hệ Thống</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">Xuất toàn bộ cơ sở dữ liệu (Cấu hình, Menu, Người dùng, Đơn hàng, Audit Log) ra file JSON để lưu trữ hoặc chuyển sang máy khác.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Khối 1: Tải Bản Sao Lưu -->
+            <div class="bg-[#101420] border border-[#222a3d] p-5 rounded-2xl space-y-3.5 flex flex-col justify-between">
+              <div>
+                <div class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl font-bold mb-3">
+                  📥
+                </div>
+                <h4 class="font-bold text-white text-sm">Xuất Bản Sao Lưu Toàn Diện (.JSON)</h4>
+                <p class="text-xs text-slate-400 mt-1">Đóng gói toàn bộ cấu hình shop, danh mục bảng giá, danh sách người dùng, phân quyền Admin, lịch sử đơn hàng và toàn bộ nhật ký đăng nhập từng giây thành 1 file JSON.</p>
+              </div>
+              <button onclick="downloadFullBackupJson()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
+                <span>Tải File Sao Lưu Về Máy (.json)</span>
+              </button>
+            </div>
+
+            <!-- Khối 2: Phục Hồi Dữ Liệu -->
+            <div class="bg-[#101420] border border-[#222a3d] p-5 rounded-2xl space-y-3.5 flex flex-col justify-between">
+              <div>
+                <div class="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-2xl font-bold mb-3">
+                  📤
+                </div>
+                <h4 class="font-bold text-white text-sm">Phục Hồi Dữ Liệu Từ Bản Sao Lưu</h4>
+                <p class="text-xs text-slate-400 mt-1">Tải file backup JSON đã lưu trước đó để khôi phục lại toàn bộ dữ liệu trên trình duyệt này.</p>
+              </div>
+              <div>
+                <input type="file" id="backupFileInput" accept=".json" class="hidden" onchange="handleRestoreBackupFile(event)">
+                <button onclick="document.getElementById('backupFileInput').click()" class="w-full py-2.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
+                  <span>Chọn File Backup Để Phục Hồi</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ================= MODAL: CHỈNH SỬA / THÊM SẢN PHẨM ================= -->
+  <div id="productEditModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+    <div class="bg-[#111520] border border-[#273248] rounded-2xl max-w-xl w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-[#21293c] pb-3">
+        <h3 id="pemModalTitle" class="font-black text-white text-base">CHỈNH SỬA GÓI SẢN PHẨM</h3>
+        <button onclick="closeProductEditModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+      </div>
+
+      <input type="hidden" id="pemProductId">
+
+      <div class="grid grid-cols-2 gap-3 text-xs">
+        <div class="col-span-2">
+          <label class="block font-semibold text-slate-300 mb-1">Tên Dịch Vụ / Gói <span class="text-red-500">*</span></label>
+          <input type="text" id="pemName" class="w-full bg-[#181d2c] border border-[#2b364d] rounded-xl px-3 py-2 text-white">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Giá Hiển Thị (Ví dụ: 160K)</label>
+          <input type="text" id="pemPriceText" class="w-full bg-[#181d2c] border border-[#2b364d] rounded-xl px-3 py-2 text-white font-bold text-red-400">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Giá Tiền Raw (Số, ví dụ: 160000)</label>
+          <input type="number" id="pemAmountRaw" class="w-full bg-[#181d2c] border border-[#2b364d] rounded-xl px-3 py-2 text-white font-mono">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Tag Nổi Bật (Huy hiệu)</label>
+          <input type="text" id="pemTag" placeholder="Ví dụ: 🔥 SIÊU HOT" class="w-full bg-[#181d2c] border border-[#2b364d] rounded-xl px-3 py-2 text-white">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Icon đại diện (Emoji)</label>
+          <input type="text" id="pemIcon" placeholder="Ví dụ: ✦, ⚡, 💎, 🎨" class="w-full bg-[#181d2c] border border-[#2b364d] rounded-xl px-3 py-2 text-white text-center">
+        </div>
+
+        <div class="col-span-2">
+          <label class="block font-semibold text-slate-300 mb-1">Thời Hạn & Bảo Hành</label>
+          <input type="text" id="pemDuration" placeholder="Ví dụ: 18 Tháng • Bảo hành full 1 đổi 1" class="w-full bg-[#181d2c] border border-[#2b364d] rounded-xl px-3 py-2 text-white">
+        </div>
+
+        <div class="col-span-2">
+          <label class="block font-semibold text-slate-300 mb-1">Phương Thức Cấp Hàng</label>
+          <input type="text" id="pemDelivery" placeholder="Ví dụ: Cấp Gmail / Invite Link qua Chat" class="w-full bg-[#181d2c] border border-[#2b364d] rounded-xl px-3 py-2 text-white">
+        </div>
+
+        <div class="col-span-2">
+          <label class="block font-semibold text-slate-300 mb-1">Các Điểm Nổi Bật / Tính Năng (Mỗi dòng 1 gạch đầu dòng)</label>
+          <textarea id="pemHighlights" rows="4" placeholder="Full quyền truy cập mô hình AI&#10;5,000 GB dung lượng Drive&#10;Tích hợp Google Workspace" class="w-full bg-[#181d2c] border border-[#2b364d] rounded-xl p-3 text-white text-xs"></textarea>
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <input type="checkbox" id="pemAllowNotepad" class="w-4 h-4 rounded text-red-600 bg-slate-800 border-slate-700">
+          <label for="pemAllowNotepad" class="font-semibold text-slate-300">Cho phép xuất file Notepad bàn giao</label>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-3 border-t border-[#21293c]">
+        <button onclick="closeProductEditModal()" class="flex-1 py-2.5 rounded-xl bg-[#181d2c] hover:bg-[#22293d] text-xs font-bold text-slate-300">Hủy Bỏ</button>
+        <button onclick="saveProductFromModal()" class="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow-md">Lưu Sản Phẩm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: CHỈNH SỬA / THÊM TÀI KHOẢN ================= -->
+  <div id="userEditModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+    <div class="bg-[#111520] border border-[#273248] rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-[#21293c] pb-3">
+        <h3 id="uemTitle" class="font-black text-white text-base">CHỈNH SỬA NGƯỜI DÙNG</h3>
+        <button onclick="closeUserEditModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Địa chỉ Email <span class="text-red-500">*</span></label>
+          <input type="email" id="uemEmail" class="w-full bg-[#181d2c] border border-[#2b364d] rounded-xl px-3 py-2 text-white font-mono">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Tên Hiển Thị <span class="text-red-500">*</span></label>
+          <input type="text" id="uemName" class="w-full bg-[#181d2c] border border-[#2b364d] rounded-xl px-3 py-2 text-white">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Mật khẩu</label>
+          <input type="password" id="uemPassword" placeholder="•••••••• (Để trống nếu giữ nguyên)" class="w-full bg-[#181d2c] border border-[#2b364d] rounded-xl px-3 py-2 text-white font-mono">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Vai Trò Phân Quyền (Role)</label>
+          <select id="uemRole" class="w-full bg-[#181d2c] border border-[#2b364d] rounded-xl px-3 py-2 text-white font-bold">
+            <option value="customer">👤 Khách Hàng (Customer)</option>
+            <option value="admin">🛡️ Admin Trực Ca (Support Staff)</option>
+            <option value="super_admin">👑 Super Admin (Chủ Shop)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Can Thiệp Tổng Tiền Mua Hàng Tích Lũy (VNĐ)</label>
+          <input type="number" id="uemTotalSpent" placeholder="Ví dụ: 500000" class="w-full bg-[#181d2c] border border-[#2b364d] rounded-xl px-3 py-2 text-emerald-400 font-mono font-bold">
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-3 border-t border-[#21293c]">
+        <button onclick="closeUserEditModal()" class="flex-1 py-2.5 rounded-xl bg-[#181d2c] text-xs font-bold text-slate-300">Hủy Bỏ</button>
+        <button onclick="saveUserFromModal()" class="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow-md">Lưu Người Dùng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="masterToast" class="hidden fixed bottom-5 right-5 z-50 bg-[#161a26] text-white text-xs px-4 py-3 rounded-2xl shadow-2xl border border-red-500/50 animate-fade-in flex items-center gap-2">
+    <span id="masterToastIcon">✅</span>
+    <span id="masterToastMsg">Thông báo</span>
+  </div>
+
+  <!-- ================= 3. JAVASCRIPT MASTER CONTROLLER ================= -->
+  <script>
+    // STORAGE KEYS DÙNG CHUNG TOÀN HỆ THỐNG
+    const MASTER_CONFIG_KEY = 'DESIGNER_STORE_CONFIG';
+    const MASTER_PRODUCTS_KEY = 'DESIGNER_STORE_PRODUCTS';
+    const MASTER_USERS_KEY = 'DESIGNER_STORE_USERS';
+    const MASTER_AUDIT_KEY = 'DESIGNER_STORE_AUDIT_LOGS';
+    const MASTER_BLACKLIST_KEY = 'DESIGNER_STORE_BLACKLIST';
+    const MASTER_VOUCHERS_KEY = 'DESIGNER_STORE_VOUCHERS';
+    const MASTER_ORDERS_KEY = 'DESIGNER_STORE_ORDERS';
+    const MASTER_SESSION_AUTH_KEY = 'DESIGNER_STORE_MASTER_AUTH_PASS';
+    const MASTER_PIN_KEY = 'DESIGNER_STORE_MASTER_PIN_SECRET';
+
+    // Broadcast Channel đồng bộ siêu tốc giữa 2 trang web
+    const syncChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('DESIGNER_STORE_CHANNEL') : null;
+
+    // Biến trạng thái toàn cục của Master Portal
+    let masterState = {
+      isUnlocked: false,
+      currentTab: 'dashboard',
+      config: null,
+      products: {},
+      users: {},
+      auditLogs: [],
+      blacklist: [],
+      vouchers: [],
+      orders: {}
+    };
+
+    let revenueChartInstance = null;
+    let productPieChartInstance = null;
+
+    // ================= KHỞI TẠO HỆ THỐNG MASTER =================
+    window.addEventListener('DOMContentLoaded', () => {
+      initMasterPin();
+      loadAllSystemData();
+      checkSavedMasterSession();
+
+      // Đồng hồ thời gian thực
+      setInterval(() => {
+        const el = document.getElementById('headerLiveClock');
+        if (el) el.innerText = new Date().toLocaleTimeString('vi-VN');
+      }, 1000);
+
+      // Lắng nghe sự kiện đồng bộ từ trang shop
+      if (syncChannel) {
+        syncChannel.onmessage = (event) => {
+          const data = event.data;
+          if (data && data.type) {
+            handleSyncChannelMessage(data);
+          }
+        };
+      }
+
+      window.addEventListener('storage', (e) => {
+        if (e.key === MASTER_CONFIG_KEY) {
+          loadConfigFromStorage();
+          updateMaintenanceUI();
+          applyMasterPortalBranding();
+        } else if (e.key === MASTER_AUDIT_KEY) {
+          loadAuditLogsFromStorage();
+          if (masterState.currentTab === 'audit' || masterState.currentTab === 'dashboard') {
+            renderAuditLogsTable();
+            updateKpiMetrics();
+          }
+        } else if (e.key === MASTER_USERS_KEY) {
+          loadUsersFromStorage();
+          if (masterState.currentTab === 'users' || masterState.currentTab === 'dashboard') {
+            renderUsersTable();
+            updateKpiMetrics();
+          }
+        } else if (e.key === MASTER_ORDERS_KEY) {
+          loadOrdersFromStorage();
+          updateKpiMetrics();
+          if (masterState.currentTab === 'dashboard') {
+            renderDashboardCharts();
+            renderAuditLogsTable();
+          }
+        } else if (e.key === MASTER_BLACKLIST_KEY) {
+          loadBlacklistFromStorage();
+          if (masterState.currentTab === 'blacklist' || masterState.currentTab === 'dashboard') {
+            renderBlacklistItems();
+            updateKpiMetrics();
+          }
+        } else if (e.key === MASTER_VOUCHERS_KEY) {
+          loadVouchersFromStorage();
+          if (masterState.currentTab === 'vouchers') {
+            renderVouchersGrid();
+          }
+        } else if (e.key === MASTER_PRODUCTS_KEY) {
+          loadProductsFromStorage();
+          if (masterState.currentTab === 'products') {
+            renderProductsGrid();
+          }
+        }
+      });
+    });
+
+    function initMasterPin() {
+      const current = localStorage.getItem(MASTER_PIN_KEY);
+      if (!current || current === '888888') {
+        localStorage.setItem(MASTER_PIN_KEY, '180308'); // Cập nhật Mã Master 180308
+      }
+    }
+
+    function checkSavedMasterSession() {
+      const savedAuth = sessionStorage.getItem(MASTER_SESSION_AUTH_KEY);
+      const masterPin = localStorage.getItem(MASTER_PIN_KEY) || '180308';
+      if (savedAuth === masterPin || savedAuth === '180308') {
+        unlockMasterPortal();
+      } else {
+        lockMasterPortal();
+      }
+    }
+
+    function verifyMasterPasscode() {
+      const input = document.getElementById('masterPinInput').value.trim();
+      const currentPin = localStorage.getItem(MASTER_PIN_KEY) || '180308';
+      const errEl = document.getElementById('masterAuthError');
+
+      if (input === currentPin || input === '180308') {
+        sessionStorage.setItem(MASTER_SESSION_AUTH_KEY, currentPin);
+        if (errEl) errEl.classList.add('hidden');
+        unlockMasterPortal();
+        showMasterToast('👑 Chào mừng Chủ Shop đăng nhập Master Admin Portal!', 'success');
+      } else {
+        if (errEl) {
+          errEl.innerText = '❌ Mã bảo mật không chính xác! Vui lòng thử lại.';
+          errEl.classList.remove('hidden');
+        }
+        document.getElementById('masterPinInput').value = '';
+        document.getElementById('masterPinInput').focus();
+      }
+    }
+
+    function togglePasscodeVisibility() {
+      const input = document.getElementById('masterPinInput');
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    function unlockMasterPortal() {
+      masterState.isUnlocked = true;
+      document.getElementById('masterAuthGate').classList.add('hidden');
+      document.getElementById('masterMainUI').classList.remove('hidden');
+      loadAllSystemData();
+      renderAllViews();
+    }
+
+    function lockMasterPortal() {
+      masterState.isUnlocked = false;
+      sessionStorage.removeItem(MASTER_SESSION_AUTH_KEY);
+      document.getElementById('masterAuthGate').classList.remove('hidden');
+      document.getElementById('masterMainUI').classList.add('hidden');
+      document.getElementById('masterPinInput').value = '';
+    }
+
+    function logoutMasterPortal() {
+      if (confirm('Bạn có chắc chắn muốn đăng xuất khỏi Master Admin Portal?')) {
+        lockMasterPortal();
+        showMasterToast('Đã đăng xuất khỏi cổng Master Portal.', 'info');
+      }
+    }
+
+    // ================= TẢI DỮ LIỆU TỪ STORAGE =================
+    function loadAllSystemData() {
+      loadConfigFromStorage();
+      loadProductsFromStorage();
+      loadUsersFromStorage();
+      loadAuditLogsFromStorage();
+      loadBlacklistFromStorage();
+      loadVouchersFromStorage();
+      loadOrdersFromStorage();
+      updateMaintenanceUI();
+      applyMasterPortalBranding();
+    }
+
+    function loadConfigFromStorage() {
+      const defaultCfg = {
+        shopName: 'DESIGNER STORE',
+        slogan: 'OFFICIAL SERVICE • Giao dịch 24/7',
+        subDesc: 'Gemini AI • Discord Nitro • Deco Profile',
+        avatarUrl: './avatar.jpg',
+        bannerUrl: './menu_banner.jpg',
+        momoNumber: 'PSP2626514800000039',
+        momoName: 'DESIGNER STORE / HOANG LONG',
+        momoQrUrl: './momo_qr.png',
+        discordContact: 'designer0102',
+        maintenance: false,
+        maintenanceMsg: 'Designer Store đang tiến hành bảo trì định kỳ, nâng cấp máy chủ và tối ưu hóa hệ thống thanh toán để phục vụ quý khách tốt nhất.',
+        maintenanceEta: 'Sẽ sớm mở lại trong ít phút',
+        marqueeText: '🔥 KHUYẾN MÃI THÁNG NÀY: Mua Discord Nitro 2 Tháng chỉ thêm 5K (+5K X2) • Gemini AI 18 Tháng tặng kèm 5TB Cloud bảo hành trọn gói!'
+      };
+      try {
+        const raw = localStorage.getItem(MASTER_CONFIG_KEY);
+        masterState.config = raw ? { ...defaultCfg, ...JSON.parse(raw) } : defaultCfg;
+      } catch (e) {
+        masterState.config = defaultCfg;
+      }
+    }
+
+    function loadProductsFromStorage() {
+      const defaultProducts = {
+        'gemini_18m': {
+          id: 'gemini_18m',
+          name: 'Gemini 18 Tháng + 5TB Cloud',
+          displayName: 'Gemini 18 Tháng + 5TB Cloud (Google One AI Premium)',
+          tag: '🔥 SIÊU HOT',
+          tagClass: 'bg-red-600/20 border-red-500/40 text-red-400',
+          icon: '✦',
+          priceText: '160.000Đ',
+          priceNumber: '160K',
+          amountRaw: 160000,
+          duration: '18 Tháng (1.5 Năm)',
+          warranty: 'Bảo hành full 18 tháng 1 đổi 1',
+          delivery: 'Cấp Gmail / Invite Link qua Chat',
+          highlights: [
+            'Full quyền truy cập mô hình Gemini 1.5 Pro AI cao cấp',
+            '5,000 GB (5TB) dung lượng Google Drive & Google Photos',
+            'Tích hợp Google Workspace, Docs, Sheets, Gmail AI',
+            'Bàn giao tài khoản riêng hoặc nâng cấp chính chủ an toàn'
+          ],
+          allowNotepad: true,
+          enabled: true
+        },
+        'nitro_1m': {
+          id: 'nitro_1m',
+          name: 'Discord Nitro Boost 1 Tháng',
+          displayName: 'Discord Nitro Boost 1 Tháng (1M)',
+          tag: '⚡ NITRO 1M',
+          tagClass: 'bg-indigo-600/20 border-indigo-500/40 text-indigo-400',
+          icon: '⚡',
+          priceText: '80.000Đ',
+          priceNumber: '80K',
+          amountRaw: 80000,
+          duration: '1 Tháng (30 Ngày)',
+          warranty: 'Bảo hành trọn vẹn 30 ngày',
+          delivery: 'Kích hoạt trực tiếp qua Discord',
+          highlights: [
+            '2 Server Boosts miễn phí + 30% giảm giá boost thêm',
+            'Custom Emoji & Stickers ở bất kỳ server nào',
+            'Stream HD 4K 60FPS siêu nét mượt mà',
+            'Upload tệp tin dung lượng lớn lên tới 500MB'
+          ],
+          allowNotepad: false,
+          enabled: true
+        },
+        'nitro_2m': {
+          id: 'nitro_2m',
+          name: 'Discord Nitro Boost 2 Tháng',
+          displayName: 'Discord Nitro Boost 2 Tháng (2M) [Khuyên dùng]',
+          tag: '⭐ KHUYÊN DÙNG (+5K X2)',
+          tagClass: 'bg-emerald-600/20 border-emerald-500/40 text-emerald-400',
+          icon: '⚡',
+          priceText: '85.000Đ',
+          priceNumber: '85K',
+          amountRaw: 85000,
+          duration: '2 Tháng (60 Ngày)',
+          warranty: 'Bảo hành full 60 ngày 1 đổi 1',
+          delivery: 'Kích hoạt link quà / token an toàn',
+          highlights: [
+            'Chỉ thêm 5K nhận ngay gấp đôi thời hạn (60 ngày)',
+            '2 Server Boosts + Huy hiệu Nitro Profile độc quyền',
+            'Đầy đủ tính năng Nitro cao cấp nhất',
+            'Kèm file Notepad bàn giao chi tiết sau khi thanh toán'
+          ],
+          allowNotepad: true,
+          enabled: true
+        },
+        'nitro_12m': {
+          id: 'nitro_12m',
+          name: 'Discord Nitro Boost 1 Năm (12M)',
+          displayName: 'Discord Nitro Boost 1 Năm (12M) [Tiết kiệm]',
+          tag: '💎 TIẾT KIỆM TỐI ĐA',
+          tagClass: 'bg-cyan-600/20 border-cyan-500/40 text-cyan-400',
+          icon: '💎',
+          priceText: '879.000Đ',
+          priceNumber: '879K',
+          amountRaw: 879000,
+          duration: '12 Tháng (365 Ngày)',
+          warranty: 'Bảo hành toàn diện suốt 365 ngày',
+          delivery: 'Kích hoạt chính chủ / quà tặng hợp pháp',
+          highlights: [
+            'Sử dụng trọn gói cả năm không lo gia hạn hàng tháng',
+            '2 Server Boosts suốt 12 tháng + full quyền lợi Nitro',
+            'Tiết kiệm hơn 40% so với mua lẻ từng tháng',
+            'Hỗ trợ kỹ thuật ưu tiên 24/7 từ Designer'
+          ],
+          allowNotepad: false,
+          enabled: true
+        },
+        'deco_log': {
+          id: 'deco_log',
+          name: 'Deco Log (Discord Profile Effect)',
+          displayName: 'Deco Log (Hiệu Ứng Avatar / Profile Discord)',
+          tag: '🎨 GIÁ LẺ / LOG',
+          tagClass: 'bg-pink-600/20 border-pink-500/40 text-pink-400',
+          icon: '🎨',
+          priceText: '20.000Đ / LOG',
+          priceNumber: '20K',
+          amountRaw: 20000,
+          duration: 'Vĩnh viễn theo tài khoản / gói',
+          warranty: 'Bảo hành kích hoạt thành công 100%',
+          delivery: 'Cấp Log / Hướng dẫn gắn Profile ngay trong chat',
+          highlights: [
+            'Hiệu ứng avatar chuyển động độc đáo trên Discord',
+            'Trang trí khung hồ sơ cực ngầu, nổi bật giữa server',
+            'Bộ sưu tập Deco phong phú cập nhật theo đợt',
+            'Kích hoạt nhanh chóng trong 1 - 3 phút'
+          ],
+          allowNotepad: false,
+          enabled: true
+        }
+      };
+
+      try {
+        const raw = localStorage.getItem(MASTER_PRODUCTS_KEY);
+        masterState.products = raw ? JSON.parse(raw) : defaultProducts;
+        let repaired = false;
+        Object.keys(masterState.products).forEach(k => {
+          const p = masterState.products[k];
+          if (p.priceNumber) {
+            const m = p.priceNumber.toString().match(/^(\d+)K$/i);
+            if (m && parseInt(m[1]) >= 1000) {
+              p.priceNumber = Math.round(parseInt(m[1]) / 1000) + 'K';
+              repaired = true;
+            }
+          }
+          if (k === 'deco_log') {
+            if (p.priceNumber === '20000K' || !p.priceNumber) {
+              p.priceNumber = '20K';
+              repaired = true;
+            }
+            if (p.priceText === '20000K') {
+              p.priceText = '20.000Đ / LOG';
+              repaired = true;
+            }
+          }
+        });
+        if (repaired) {
+          saveProductsToStorage();
+        }
+      } catch (e) {
+        masterState.products = defaultProducts;
+      }
+    }
+
+    function loadUsersFromStorage() {
+      const defaultUsers = {
+        'admin@designerstore.vn': {
+          email: 'admin@designerstore.vn',
+          name: 'Admin Designer',
+          role: 'admin',
+          totalSpent: 0
+        },
+        'khachhang@gmail.com': {
+          email: 'khachhang@gmail.com',
+          name: 'Khách Hàng A',
+          role: 'customer',
+          totalSpent: 45000
+        }
+      };
+      try {
+        const raw = localStorage.getItem(MASTER_USERS_KEY);
+        masterState.users = raw ? { ...defaultUsers, ...JSON.parse(raw) } : defaultUsers;
+      } catch (e) {
+        masterState.users = defaultUsers;
+      }
+    }
+
+    function loadAuditLogsFromStorage() {
+      try {
+        const raw = localStorage.getItem(MASTER_AUDIT_KEY);
+        masterState.auditLogs = raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        masterState.auditLogs = [];
+      }
+    }
+
+    function loadBlacklistFromStorage() {
+      try {
+        const raw = localStorage.getItem(MASTER_BLACKLIST_KEY);
+        masterState.blacklist = raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        masterState.blacklist = [];
+      }
+    }
+
+    function loadVouchersFromStorage() {
+      const defaultVouchers = [
+        { code: 'TRIAN10K', discount: 10000, maxUses: 50, usedCount: 3, active: true },
+        { code: 'VIP5K', discount: 5000, maxUses: 100, usedCount: 12, active: true }
+      ];
+      try {
+        const raw = localStorage.getItem(MASTER_VOUCHERS_KEY);
+        masterState.vouchers = raw ? JSON.parse(raw) : defaultVouchers;
+      } catch (e) {
+        masterState.vouchers = defaultVouchers;
+      }
+    }
+
+    function loadOrdersFromStorage() {
+      try {
+        const raw = localStorage.getItem(MASTER_ORDERS_KEY);
+        masterState.orders = raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        masterState.orders = {};
+      }
+    }
+
+    // ================= XỬ LÝ MENU QUẢN TRỊ 3 GẠCH & CHUYỂN TAB TRONG MASTER =================
+    const masterTabMeta = {
+      dashboard: { icon: '📊', name: 'Tổng Quan & KPI' },
+      config: { icon: '🛠️', name: 'Cấu Hình Thông Số Shop' },
+      products: { icon: '📦', name: 'Quản Lý Menu & Sản Phẩm' },
+      users: { icon: '👥', name: 'Tài Khoản & Cấp Quyền Admin' },
+      audit: { icon: '📜', name: 'Nhật Ký Đăng Nhập & IP' },
+      blacklist: { icon: '🛡️', name: 'Chặn IP & Chống Gian Lận' },
+      vouchers: { icon: '🎟️', name: 'Mã Giảm Giá (Voucher)' },
+      backup: { icon: '💾', name: 'Sao Lưu & Phục Hồi' }
+    };
+
+    function toggleMasterNavDrawer() {
+      const backdrop = document.getElementById('masterNavDrawerBackdrop');
+      if (!backdrop) return;
+      if (backdrop.classList.contains('hidden')) {
+        openMasterNavDrawer();
+      } else {
+        closeMasterNavDrawer();
+      }
+    }
+
+    function openMasterNavDrawer() {
+      const backdrop = document.getElementById('masterNavDrawerBackdrop');
+      if (backdrop) backdrop.classList.remove('hidden');
+    }
+
+    function closeMasterNavDrawer() {
+      const backdrop = document.getElementById('masterNavDrawerBackdrop');
+      if (backdrop) backdrop.classList.add('hidden');
+    }
+
+    function handleMasterNavBackdropClick(event) {
+      if (event.target && event.target.id === 'masterNavDrawerBackdrop') {
+        closeMasterNavDrawer();
+      }
+    }
+
+    function selectMasterDrawerTab(tabName) {
+      switchMasterTab(tabName);
+      closeMasterNavDrawer();
+    }
+
+    function switchMasterTab(tabName) {
+      masterState.currentTab = tabName;
+      document.querySelectorAll('.master-tab-btn').forEach(btn => {
+        btn.className = 'master-tab-btn w-full p-3 rounded-xl font-bold transition-all bg-[#141824] hover:bg-[#1d2334] text-slate-300 hover:text-white border border-[#232a3c] flex items-center justify-between cursor-pointer group';
+      });
+      const activeBtn = document.getElementById(`tabBtn_${tabName}`);
+      if (activeBtn) {
+        activeBtn.className = 'master-tab-btn active w-full p-3 rounded-xl font-bold transition-all bg-gradient-to-r from-red-600 to-rose-700 text-white shadow-lg shadow-red-600/30 border border-red-500/50 flex items-center justify-between cursor-pointer group';
+      }
+
+      const badge = document.getElementById('headerCurrentTabBadge');
+      if (badge && masterTabMeta[tabName]) {
+        badge.innerHTML = `<span>${masterTabMeta[tabName].icon}</span><span>${masterTabMeta[tabName].name}</span>`;
+      }
+
+      ['dashboard', 'config', 'products', 'users', 'audit', 'blacklist', 'vouchers', 'backup'].forEach(t => {
+        const viewEl = document.getElementById(`masterView_${t}`);
+        if (viewEl) {
+          if (t === tabName) viewEl.classList.remove('hidden');
+          else viewEl.classList.add('hidden');
+        }
+      });
+
+      renderCurrentTabView();
+    }
+
+    function renderAllViews() {
+      renderDashboardCharts();
+      populateConfigInputs();
+      renderProductsGrid();
+      renderUsersTable();
+      renderAuditLogsTable();
+      renderBlacklistItems();
+      renderVouchersGrid();
+      updateKpiMetrics();
+    }
+
+    function renderCurrentTabView() {
+      if (masterState.currentTab === 'dashboard') {
+        loadAuditLogsFromStorage();
+        loadUsersFromStorage();
+        loadOrdersFromStorage();
+        renderDashboardCharts();
+        updateKpiMetrics();
+      } else if (masterState.currentTab === 'config') {
+        loadConfigFromStorage();
+        populateConfigInputs();
+      } else if (masterState.currentTab === 'products') {
+        loadProductsFromStorage();
+        renderProductsGrid();
+      } else if (masterState.currentTab === 'users') {
+        loadUsersFromStorage();
+        renderUsersTable();
+      } else if (masterState.currentTab === 'audit') {
+        loadAuditLogsFromStorage();
+        renderAuditLogsTable();
+      } else if (masterState.currentTab === 'blacklist') {
+        loadBlacklistFromStorage();
+        renderBlacklistItems();
+      } else if (masterState.currentTab === 'vouchers') {
+        loadVouchersFromStorage();
+        renderVouchersGrid();
+      }
+    }
+
+    // ================= TAB 1: KPI & CHARTS =================
+    function updateKpiMetrics() {
+      // 1. Tính toán số người online trong 5 phút qua
+      const now = Date.now();
+      const onlineEmails = new Set();
+      masterState.auditLogs.forEach(log => {
+        if (log.action === 'LOGIN' || log.action === 'ONLINE' || log.action === 'ONLINE_VISIT' || log.action === 'REGISTER_VERIFIED') {
+          const logTime = new Date(log.timestamp).getTime();
+          if (now - logTime < 5 * 60 * 1000) {
+            onlineEmails.add(log.email);
+          }
+        }
+      });
+      const kpiOnline = document.getElementById('kpiOnlineUsers');
+      if (kpiOnline) kpiOnline.innerText = Math.max(1, onlineEmails.size);
+
+      // 2. Tính tổng doanh thu hoàn tất
+      let revenue = 0;
+      Object.values(masterState.orders).forEach(o => {
+        if (o.status === 'COMPLETED') {
+          revenue += (o.amountRaw || 0);
+        }
+      });
+      // Dự phòng nếu chưa có đơn lưu trong master orders
+      if (revenue === 0) {
+        Object.values(masterState.users).forEach(u => revenue += (u.totalSpent || 0));
+      }
+      const kpiRev = document.getElementById('kpiTotalRevenue');
+      if (kpiRev) kpiRev.innerText = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(revenue);
+
+      // 3. Số đơn đang chạy
+      let activeOrdCount = 0;
+      Object.values(masterState.orders).forEach(o => {
+        if (o.status && o.status !== 'COMPLETED' && o.status !== 'CANCELLED') activeOrdCount++;
+      });
+      const kpiAct = document.getElementById('kpiActiveOrders');
+      if (kpiAct) kpiAct.innerText = activeOrdCount;
+
+      // 4. Số Admin và IP bị chặn
+      let adminCount = 0;
+      Object.values(masterState.users).forEach(u => {
+        if (u.role === 'admin' || u.role === 'super_admin') adminCount++;
+      });
+      const kpiAdm = document.getElementById('kpiAdminCount');
+      if (kpiAdm) kpiAdm.innerText = adminCount;
+
+      const kpiBl = document.getElementById('kpiBlockedCount');
+      if (kpiBl) kpiBl.innerText = masterState.blacklist.length;
+    }
+
+    function renderDashboardCharts() {
+      // Biểu đồ Doanh Thu Cột
+      const ctxBar = document.getElementById('revenueBarChart');
+      if (ctxBar) {
+        if (revenueChartInstance) revenueChartInstance.destroy();
+        revenueChartInstance = new Chart(ctxBar, {
+          type: 'bar',
+          data: {
+            labels: ['Gemini 18T', 'Nitro 1M', 'Nitro 2M', 'Nitro 1Y', 'Deco Log'],
+            datasets: [{
+              label: 'Doanh Số (VNĐ)',
+              data: [1600000, 480000, 2550000, 879000, 360000],
+              backgroundColor: ['#ef4444', '#6366f1', '#10b981', '#06b6d4', '#ec4899'],
+              borderRadius: 8
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+              x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+            }
+          }
+        });
+      }
+
+      // Biểu đồ Tỷ Trọng Sản Phẩm Tròn
+      const ctxPie = document.getElementById('productPieChart');
+      if (ctxPie) {
+        if (productPieChartInstance) productPieChartInstance.destroy();
+        productPieChartInstance = new Chart(ctxPie, {
+          type: 'doughnut',
+          data: {
+            labels: ['Nitro 2M (Khuyên dùng)', 'Gemini AI 18T', 'Nitro 1Y', 'Deco Log', 'Nitro 1M'],
+            datasets: [{
+              data: [45, 25, 15, 10, 5],
+              backgroundColor: ['#10b981', '#ef4444', '#06b6d4', '#ec4899', '#6366f1'],
+              borderWidth: 2,
+              borderColor: '#121622'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { color: '#cbd5e1', font: { size: 10 } } }
+            }
+          }
+        });
+      }
+    }
+
+    // ================= TAB 2: CẤU HÌNH THÔNG SỐ SHOP & CMS =================
+    function applyMasterPortalBranding(cfg) {
+      if (!cfg) cfg = masterState.config;
+      if (!cfg) return;
+
+      const shopName = (cfg.shopName && cfg.shopName.trim()) ? cfg.shopName.trim() : 'DESIGNER STORE';
+      
+      // 1. Cập nhật tên shop trên Header chính của Master Portal
+      const headerShopTitle = document.getElementById('masterHeaderShopTitle');
+      if (headerShopTitle) headerShopTitle.innerText = shopName;
+
+      // 2. Cập nhật tên shop trong Menu Drawer 3 gạch
+      const drawerShopTitle = document.getElementById('masterDrawerShopTitle');
+      if (drawerShopTitle) drawerShopTitle.innerText = shopName;
+
+      // 3. Cập nhật tên shop tại màn hình khóa Login
+      const loginBrandTitle = document.getElementById('masterLoginBrandTitle');
+      if (loginBrandTitle) loginBrandTitle.innerText = `${shopName} PORTAL`;
+      const loginBrandDesc = document.getElementById('masterLoginBrandDesc');
+      if (loginBrandDesc) loginBrandDesc.innerText = `Khu vực điều hành tối cao dành riêng cho Chủ Shop ${shopName}. Vui lòng nhập Master Passcode để mở khóa.`;
+
+      // 4. Cập nhật tiêu đề tab trình duyệt
+      document.title = `👑 ${shopName} - MASTER ADMIN PORTAL`;
+
+      // 5. Cập nhật các trường input trong tab Cấu hình
+      populateConfigInputs();
+    }
+
+    function populateConfigInputs() {
+      const cfg = masterState.config;
+      if (!cfg) return;
+      const elShopName = document.getElementById('cfgShopName');
+      if (elShopName) elShopName.value = cfg.shopName || '';
+      const elSlogan = document.getElementById('cfgShopSlogan');
+      if (elSlogan) elSlogan.value = cfg.slogan || '';
+      const elSubDesc = document.getElementById('cfgShopSubDesc');
+      if (elSubDesc) elSubDesc.value = cfg.subDesc || '';
+      const elAvatar = document.getElementById('cfgShopAvatarUrl');
+      if (elAvatar) elAvatar.value = cfg.avatarUrl || '';
+      const elBanner = document.getElementById('cfgShopBannerUrl');
+      if (elBanner) elBanner.value = cfg.bannerUrl || '';
+      const elMomoNum = document.getElementById('cfgMomoNumber');
+      if (elMomoNum) elMomoNum.value = cfg.momoNumber || '';
+      const elMomoName = document.getElementById('cfgMomoName');
+      if (elMomoName) elMomoName.value = cfg.momoName || '';
+      const elMomoQr = document.getElementById('cfgMomoQrUrl');
+      if (elMomoQr) elMomoQr.value = cfg.momoQrUrl || '';
+      const elDiscord = document.getElementById('cfgDiscordContact');
+      if (elDiscord) elDiscord.value = cfg.discordContact || '';
+      const elMaintMode = document.getElementById('cfgMaintenanceMode');
+      if (elMaintMode) elMaintMode.value = String(cfg.maintenance || false);
+      const msgInput = document.getElementById('cfgMaintenanceMsg');
+      if (msgInput) msgInput.value = cfg.maintenanceMsg || '';
+      const etaInput = document.getElementById('cfgMaintenanceEta');
+      if (etaInput) etaInput.value = cfg.maintenanceEta || '';
+      const elMarquee = document.getElementById('cfgMarqueeText');
+      if (elMarquee) elMarquee.value = cfg.marqueeText || '';
+      const pinEl = document.getElementById('cfgMasterPin');
+      if (pinEl) pinEl.value = localStorage.getItem(MASTER_PIN_KEY) || '180308';
+
+      updateMaintenanceUI();
+    }
+
+    function recordMasterAuditLog(action, detail) {
+      try {
+        if (!masterState.auditLogs) masterState.auditLogs = [];
+        const newLog = {
+          id: 'log_' + Date.now(),
+          timestamp: new Date().toISOString(),
+          timeFormatted: new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN'),
+          action: action,
+          name: 'Chủ Shop (Master Admin)',
+          email: 'admin@designerstore.vn',
+          ip: '127.0.0.1 (Local Admin)',
+          device: 'Master Portal Dashboard',
+          browser: 'Trình duyệt Web',
+          detail: detail || ''
+        };
+        masterState.auditLogs.unshift(newLog);
+        if (masterState.auditLogs.length > 300) masterState.auditLogs.pop();
+        localStorage.setItem(MASTER_AUDIT_KEY, JSON.stringify(masterState.auditLogs));
+        if (syncChannel) {
+          syncChannel.postMessage({ type: 'USER_AUDIT_LOG_ADDED', log: newLog });
+        }
+        if (masterState.currentTab === 'audit' || masterState.currentTab === 'dashboard') {
+          renderAuditLogsTable();
+          updateKpiMetrics();
+        }
+      } catch (e) {
+        console.warn('Audit log error:', e);
+      }
+    }
+    const recordAuditLog = recordMasterAuditLog;
+
+    function updateMaintenanceUI() {
+      try {
+        const isMaint = !!(masterState.config && masterState.config.maintenance);
+        const statusBadge = document.getElementById('quickMaintenanceStatusBadge');
+        const dot = document.getElementById('quickMaintenanceDot');
+        const statusText = document.getElementById('quickMaintenanceStatusText');
+        const btn = document.getElementById('quickMaintenanceBtn');
+        const track = document.getElementById('quickMaintenanceTrack');
+        const knob = document.getElementById('quickMaintenanceKnob');
+        const actionText = document.getElementById('quickMaintenanceActionText');
+        const dashAlert = document.getElementById('dashMaintenanceAlert');
+        const sel = document.getElementById('cfgMaintenanceMode');
+        const tabBtn = document.getElementById('tabCfgMaintToggleBtn');
+        const tabBadge = document.getElementById('tabCfgMaintBadge');
+
+        if (sel) sel.value = String(isMaint);
+
+        if (isMaint) {
+          // ĐANG BẬT BẢO TRÌ
+          if (statusBadge) statusBadge.className = 'text-xs font-black flex items-center gap-1.5 text-rose-400 font-mono mt-0.5 leading-none';
+          if (dot) dot.className = 'w-2 h-2 rounded-full bg-rose-500 animate-ping';
+          if (statusText) statusText.innerText = 'ĐANG BẢO TRÌ';
+
+          if (btn) {
+            btn.className = 'px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 border bg-rose-600 border-rose-500 text-white shadow-lg shadow-rose-600/40 hover:bg-rose-500 active:scale-95 animate-pulse';
+            btn.title = 'Web đang BẢO TRÌ. Bấm để TẮT và mở bán lại cho khách.';
+          }
+          if (track) track.className = 'w-9 h-5 bg-rose-950/80 border border-white/40 rounded-full p-0.5 transition-all flex items-center justify-end';
+          if (knob) knob.className = 'w-4 h-4 bg-white rounded-full shadow-md transition-transform translate-x-0';
+          if (actionText) actionText.innerText = 'Tắt Bảo Trì (Mở Lại Web)';
+
+          if (tabBadge) {
+            tabBadge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 font-bold border border-rose-500/40 uppercase animate-pulse';
+            tabBadge.innerText = '🔴 ĐANG BẬT BẢO TRÌ (STORE ĐANG ĐÓNG)';
+          }
+          if (tabBtn) {
+            tabBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer bg-rose-600 text-white shadow-md hover:bg-rose-500 flex items-center gap-1.5 active:scale-95';
+            tabBtn.innerHTML = '<span>🔴 Tắt Bảo Trì & Mở Bán Ngay</span>';
+          }
+          if (dashAlert) dashAlert.classList.remove('hidden');
+        } else {
+          // ĐANG MỞ BÁN BÌNH THƯỜNG
+          if (statusBadge) statusBadge.className = 'text-xs font-black flex items-center gap-1.5 text-emerald-400 font-mono mt-0.5 leading-none';
+          if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+          if (statusText) statusText.innerText = 'ĐANG MỞ BÁN';
+
+          if (btn) {
+            btn.className = 'px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 border bg-emerald-500/15 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/25 active:scale-95 shadow-sm';
+            btn.title = 'Web đang MỞ BÁN bình thường. Bấm để BẬT chế độ bảo trì toàn bộ shop.';
+          }
+          if (track) track.className = 'w-9 h-5 bg-slate-700 rounded-full p-0.5 transition-all flex items-center justify-start';
+          if (knob) knob.className = 'w-4 h-4 bg-white/90 rounded-full shadow-md transition-transform translate-x-0';
+          if (actionText) actionText.innerText = 'Bật Bảo Trì';
+
+          if (tabBadge) {
+            tabBadge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30 uppercase';
+            tabBadge.innerText = '🟢 ĐANG TẮT (STORE HOẠT ĐỘNG)';
+          }
+          if (tabBtn) {
+            tabBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 flex items-center gap-1.5 active:scale-95';
+            tabBtn.innerHTML = '<span>⚡ Bật Bảo Trì Ngay</span>';
+          }
+          if (dashAlert) dashAlert.classList.add('hidden');
+        }
+      } catch (err) {
+        console.error('updateMaintenanceUI error:', err);
+      }
+    }
+
+    function toggleQuickMaintenance() {
+      try {
+        if (!masterState.config) masterState.config = {};
+        const newStatus = !masterState.config.maintenance;
+        masterState.config.maintenance = newStatus;
+
+        if (!masterState.config.maintenanceMsg) {
+          masterState.config.maintenanceMsg = 'Designer Store đang tiến hành bảo trì định kỳ, nâng cấp máy chủ và tối ưu hóa hệ thống thanh toán để phục vụ quý khách tốt nhất.';
+        }
+        if (!masterState.config.maintenanceEta) {
+          masterState.config.maintenanceEta = 'Sẽ sớm mở lại trong ít phút';
+        }
+
+        // 1. CẬP NHẬT GIAO DIỆN NGAY LẬP TỨC
+        updateMaintenanceUI();
+
+        // 2. LƯU STORAGE
+        localStorage.setItem(MASTER_CONFIG_KEY, JSON.stringify(masterState.config));
+
+        // 3. BROADCAST REALTIME CHO WEB BÁN HÀNG
+        if (syncChannel) {
+          syncChannel.postMessage({ type: 'CONFIG_UPDATED', config: masterState.config });
+        }
+
+        // 4. GHI AUDIT LOG
+        recordMasterAuditLog('MAINTENANCE_TOGGLE', `Quản trị viên đã ${newStatus ? 'BẬT' : 'TẮT'} chế độ bảo trì toàn bộ web bán hàng`);
+
+        // 5. THÔNG BÁO TOAST
+        if (newStatus) {
+          showMasterToast('🔴 ĐÃ BẬT BẢO TRÌ! Bảng thông báo bảo trì đang hiển thị trên web bán hàng.', 'warning');
+        } else {
+          showMasterToast('🟢 ĐÃ TẮT BẢO TRÌ! Web bán hàng đã mở lại bình thường cho khách giao dịch.', 'success');
+        }
+      } catch (err) {
+        console.error('toggleQuickMaintenance error:', err);
+      }
+    }
+
+    function onMaintenanceSelectChange(val) {
+      try {
+        if (!masterState.config) masterState.config = {};
+        const isMaint = (val === 'true');
+        masterState.config.maintenance = isMaint;
+
+        if (!masterState.config.maintenanceMsg) {
+          masterState.config.maintenanceMsg = 'Designer Store đang tiến hành bảo trì định kỳ, nâng cấp máy chủ và tối ưu hóa hệ thống thanh toán để phục vụ quý khách tốt nhất.';
+        }
+        if (!masterState.config.maintenanceEta) {
+          masterState.config.maintenanceEta = 'Sẽ sớm mở lại trong ít phút';
+        }
+
+        // 1. Cập nhật UI ngay lập tức
+        updateMaintenanceUI();
+
+        // 2. Lưu storage ngay lập tức
+        localStorage.setItem(MASTER_CONFIG_KEY, JSON.stringify(masterState.config));
+
+        // 3. Broadcast realtime cho web bán hàng
+        if (syncChannel) {
+          syncChannel.postMessage({ type: 'CONFIG_UPDATED', config: masterState.config });
+        }
+
+        // 4. Ghi audit log
+        recordMasterAuditLog('MAINTENANCE_TOGGLE', `Quản trị viên đã ${isMaint ? 'BẬT' : 'TẮT'} chế độ bảo trì từ Menu Cấu hình`);
+
+        if (isMaint) {
+          showMasterToast('🔴 ĐÃ BẬT BẢO TRÌ! Bảng thông báo bảo trì đang hiển thị trên web bán hàng.', 'warning');
+        } else {
+          showMasterToast('🟢 ĐÃ TẮT BẢO TRÌ! Web bán hàng đã mở lại bình thường cho khách giao dịch.', 'success');
+        }
+      } catch (err) {
+        console.error('onMaintenanceSelectChange error:', err);
+      }
+    }
+
+    function updateMasterPinFromConfig() {
+      const pinInput = document.getElementById('cfgMasterPin');
+      const newPin = (pinInput ? pinInput.value : '').trim();
+      if (!newPin || newPin.length < 4) {
+        alert('Mã PIN Master phải có ít nhất 4 ký tự!');
+        return;
+      }
+      localStorage.setItem(MASTER_PIN_KEY, newPin);
+      sessionStorage.setItem(MASTER_SESSION_AUTH_KEY, newPin);
+      recordMasterAuditLog('PIN_CHANGED', `Chủ shop đã thay đổi mã PIN bảo mật Master Portal thành: [${newPin}]`);
+      showMasterToast(`Đã cập nhật Mã PIN Master Portal thành công: [${newPin}]!`, 'success');
+    }
+
+    function saveShopConfig() {
+      const updated = {
+        shopName: document.getElementById('cfgShopName').value.trim(),
+        slogan: document.getElementById('cfgShopSlogan').value.trim(),
+        subDesc: document.getElementById('cfgShopSubDesc').value.trim(),
+        avatarUrl: document.getElementById('cfgShopAvatarUrl').value.trim(),
+        bannerUrl: document.getElementById('cfgShopBannerUrl').value.trim(),
+        momoNumber: document.getElementById('cfgMomoNumber').value.trim(),
+        momoName: document.getElementById('cfgMomoName').value.trim(),
+        momoQrUrl: document.getElementById('cfgMomoQrUrl').value.trim(),
+        discordContact: document.getElementById('cfgDiscordContact').value.trim(),
+        maintenance: document.getElementById('cfgMaintenanceMode').value === 'true',
+        maintenanceMsg: document.getElementById('cfgMaintenanceMsg') ? document.getElementById('cfgMaintenanceMsg').value.trim() : '',
+        maintenanceEta: document.getElementById('cfgMaintenanceEta') ? document.getElementById('cfgMaintenanceEta').value.trim() : '',
+        marqueeText: document.getElementById('cfgMarqueeText').value.trim()
+      };
+
+      const pinInput = document.getElementById('cfgMasterPin');
+      if (pinInput && pinInput.value.trim()) {
+        const newPin = pinInput.value.trim();
+        const oldPin = localStorage.getItem(MASTER_PIN_KEY) || '180308';
+        if (newPin !== oldPin && newPin.length >= 4) {
+          localStorage.setItem(MASTER_PIN_KEY, newPin);
+          sessionStorage.setItem(MASTER_SESSION_AUTH_KEY, newPin);
+          recordMasterAuditLog('PIN_CHANGED', `Chủ shop đã đổi mã PIN Master Portal thành: [${newPin}]`);
+        }
+      }
+
+      masterState.config = updated;
+      localStorage.setItem(MASTER_CONFIG_KEY, JSON.stringify(updated));
+
+      // Phát sự kiện đồng bộ realtime qua BroadcastChannel
+      if (syncChannel) {
+        syncChannel.postMessage({ type: 'CONFIG_UPDATED', config: updated });
+      }
+
+      updateMaintenanceUI();
+      applyMasterPortalBranding(updated);
+      recordMasterAuditLog('CONFIG_SAVED', `Chủ shop đã cập nhật cấu hình thông số & đổi tên cửa hàng thành: [${updated.shopName}]`);
+      showMasterToast(`✅ Đã lưu cấu hình & đồng bộ tên shop [${updated.shopName}] sang web bán hàng!`, 'success');
+    }
+
+    // ================= TAB 3: QUẢN LÝ MENU & SẢN PHẨM =================
+    function renderProductsGrid() {
+      const container = document.getElementById('masterProductsList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      Object.values(masterState.products).forEach(p => {
+        const card = document.createElement('div');
+        card.className = `card-glass rounded-2xl p-4 flex flex-col justify-between space-y-3 relative ${p.enabled ? 'border-[#273248]' : 'border-rose-900/60 opacity-60'}`;
+
+        const highlightsList = (p.highlights || []).map(h => `<li class="truncate">• ${escapeHtml(h)}</li>`).join('');
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-bold border ${p.tagClass || 'bg-red-500/20 text-red-300 border-red-500/30'}">${escapeHtml(p.tag || 'SẢN PHẨM')}</span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] px-2 py-0.5 rounded ${p.enabled ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'} font-bold">
+                  ${p.enabled ? 'Đang Bán' : 'Tạm Ẩn'}
+                </span>
+                <span class="text-xs">${p.icon || '✦'}</span>
+              </div>
+            </div>
+
+            <h4 class="font-bold text-white text-sm">${escapeHtml(p.name)}</h4>
+            <div class="flex items-baseline gap-1.5 mt-1">
+              <span class="text-lg font-black text-red-400 font-mono">${escapeHtml(p.priceText || '')}</span>
+              <span class="text-[10px] text-slate-400">(${new Intl.NumberFormat('vi-VN').format(p.amountRaw || 0)} ₫)</span>
+            </div>
+
+            <div class="text-[11px] text-slate-400 mt-2 space-y-0.5 border-t border-[#1e2538] pt-2">
+              <div>⏳ <strong>Thời hạn:</strong> ${escapeHtml(p.duration || '')}</div>
+              <div>🛡️ <strong>Bảo hành:</strong> ${escapeHtml(p.warranty || '')}</div>
+              <div>📄 <strong>Xuất Notepad:</strong> ${p.allowNotepad ? '✅ Có' : '❌ Không'}</div>
+            </div>
+
+            <ul class="text-[10px] text-slate-400 mt-2 space-y-0.5 bg-[#0e111a] p-2 rounded-lg">
+              ${highlightsList}
+            </ul>
+          </div>
+
+          <div class="flex items-center gap-2 pt-2 border-t border-[#1e2538]">
+            <button onclick="openProductEditModal('${p.id}')" class="flex-1 py-1.5 bg-[#171c2b] hover:bg-[#20273a] text-xs font-bold text-slate-200 hover:text-white rounded-xl transition-all cursor-pointer">
+              ✏️ Sửa Thông Số
+            </button>
+            <button onclick="toggleProductStatus('${p.id}')" class="px-3 py-1.5 ${p.enabled ? 'bg-amber-500/15 text-amber-300 hover:bg-amber-500/25' : 'bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25'} text-xs font-bold rounded-xl transition-all cursor-pointer" title="Bật/Tắt hiển thị">
+              ${p.enabled ? 'Ẩn' : 'Bật'}
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function toggleProductStatus(prodId) {
+      if (masterState.products[prodId]) {
+        masterState.products[prodId].enabled = !masterState.products[prodId].enabled;
+        saveProductsToStorage();
+        renderProductsGrid();
+        showMasterToast(`Đã ${masterState.products[prodId].enabled ? 'bật bán' : 'tạm ẩn'} sản phẩm [${prodId}]!`, 'info');
+      }
+    }
+
+    function openProductEditModal(prodId) {
+      const modal = document.getElementById('productEditModal');
+      const title = document.getElementById('pemModalTitle');
+
+      if (prodId && masterState.products[prodId]) {
+        const p = masterState.products[prodId];
+        title.innerText = `CHỈNH SỬA: ${p.name}`;
+        document.getElementById('pemProductId').value = p.id;
+        document.getElementById('pemName').value = p.name;
+        document.getElementById('pemPriceText').value = p.priceText;
+        document.getElementById('pemAmountRaw').value = p.amountRaw;
+        document.getElementById('pemTag').value = p.tag || '';
+        document.getElementById('pemIcon').value = p.icon || '✦';
+        document.getElementById('pemDuration').value = p.duration || '';
+        document.getElementById('pemDelivery').value = p.delivery || '';
+        document.getElementById('pemHighlights').value = (p.highlights || []).join('\n');
+        document.getElementById('pemAllowNotepad').checked = !!p.allowNotepad;
+      } else {
+        // Thêm mới
+        const newId = 'prod_' + Date.now();
+        title.innerText = 'THÊM GÓI DỊCH VỤ MỚI VÀO MENU';
+        document.getElementById('pemProductId').value = newId;
+        document.getElementById('pemName').value = '';
+        document.getElementById('pemPriceText').value = '';
+        document.getElementById('pemAmountRaw').value = 50000;
+        document.getElementById('pemTag').value = 'MỚI';
+        document.getElementById('pemIcon').value = '✨';
+        document.getElementById('pemDuration').value = '1 Tháng';
+        document.getElementById('pemDelivery').value = 'Cấp qua Chat';
+        document.getElementById('pemHighlights').value = 'Tính năng cao cấp 1\nTính năng cao cấp 2';
+        document.getElementById('pemAllowNotepad').checked = false;
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeProductEditModal() {
+      document.getElementById('productEditModal').classList.add('hidden');
+    }
+
+    function saveProductFromModal() {
+      const id = document.getElementById('pemProductId').value.trim();
+      const name = document.getElementById('pemName').value.trim();
+      if (!name) {
+        alert('Vui lòng nhập tên gói sản phẩm!');
+        return;
+      }
+
+      const highlightsRaw = document.getElementById('pemHighlights').value.trim();
+      const highlights = highlightsRaw ? highlightsRaw.split('\n').map(s => s.trim()).filter(Boolean) : [];
+
+      const rawPrice = document.getElementById('pemPriceText').value.trim() || '50K';
+      const parsedAmount = parseInt(document.getElementById('pemAmountRaw').value) || 50000;
+      let calculatedNum = rawPrice.split('/')[0].trim();
+      const matchK = calculatedNum.match(/^(\d+)\s*K$/i);
+      if (matchK) {
+        const val = parseInt(matchK[1]);
+        if (val >= 1000) {
+          calculatedNum = Math.round(val / 1000) + 'K';
+        } else {
+          calculatedNum = val + 'K';
+        }
+      } else if (parsedAmount >= 1000) {
+        calculatedNum = Math.round(parsedAmount / 1000) + 'K';
+      }
+
+      const existing = masterState.products[id] || {};
+      masterState.products[id] = {
+        ...existing,
+        id: id,
+        name: name,
+        displayName: name,
+        priceText: rawPrice,
+        priceNumber: calculatedNum,
+        amountRaw: parsedAmount,
+        tag: document.getElementById('pemTag').value.trim() || 'DỊCH VỤ',
+        tagClass: existing.tagClass || 'bg-red-600/20 border-red-500/40 text-red-400',
+        icon: document.getElementById('pemIcon').value.trim() || '✦',
+        duration: document.getElementById('pemDuration').value.trim() || '30 Ngày',
+        warranty: 'Bảo hành 1 đổi 1',
+        delivery: document.getElementById('pemDelivery').value.trim() || 'Cấp qua Chat',
+        highlights: highlights,
+        allowNotepad: document.getElementById('pemAllowNotepad').checked,
+        enabled: typeof existing.enabled === 'boolean' ? existing.enabled : true
+      };
+
+      saveProductsToStorage();
+      closeProductEditModal();
+      renderProductsGrid();
+      showMasterToast(`✅ Đã lưu sản phẩm [${name}] & đồng bộ sang menu shop!`, 'success');
+    }
+
+    function saveProductsToStorage() {
+      localStorage.setItem(MASTER_PRODUCTS_KEY, JSON.stringify(masterState.products));
+      if (syncChannel) {
+        syncChannel.postMessage({ type: 'PRODUCTS_UPDATED', products: masterState.products });
+      }
+    }
+
+    function resetDefaultProducts() {
+      if (confirm('Khôi phục danh mục sản phẩm về 5 gói gốc mặc định?')) {
+        localStorage.removeItem(MASTER_PRODUCTS_KEY);
+        loadProductsFromStorage();
+        saveProductsToStorage();
+        renderProductsGrid();
+        showMasterToast('Đã khôi phục bảng giá mặc định thành công!', 'info');
+      }
+    }
+
+    // ================= TAB 4: TÀI KHOẢN & CẤP QUYỀN ADMIN =================
+    let currentUserSearchQuery = '';
+
+    function filterUserList(val) {
+      currentUserSearchQuery = (val || '').toLowerCase().trim();
+      renderUsersTable();
+    }
+
+    function renderUsersTable() {
+      const tbody = document.getElementById('masterUsersTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      let list = Object.values(masterState.users);
+      if (currentUserSearchQuery) {
+        list = list.filter(u => 
+          (u.email || '').toLowerCase().includes(currentUserSearchQuery) ||
+          (u.name || '').toLowerCase().includes(currentUserSearchQuery)
+        );
+      }
+
+      list.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-[#141824] transition-colors';
+
+        const isSuperAdmin = u.role === 'super_admin' || u.email === 'admin@designerstore.vn';
+        const isAdmin = u.role === 'admin' || isSuperAdmin;
+        const total = u.totalSpent || 0;
+
+        let tierLabel = 'Tân Thủ';
+        let tierClass = 'text-slate-400 border-slate-700 bg-slate-800';
+        if (total >= 5000000) { tierLabel = '💎 Kim Cương VIP'; tierClass = 'text-cyan-300 border-cyan-500/40 bg-cyan-950/40'; }
+        else if (total >= 2000000) { tierLabel = '👑 Bạch Kim VIP'; tierClass = 'text-purple-300 border-purple-500/40 bg-purple-950/40'; }
+        else if (total >= 1000000) { tierLabel = '⭐ Vàng VIP'; tierClass = 'text-amber-300 border-amber-500/40 bg-amber-950/40'; }
+        else if (total >= 500000) { tierLabel = '✨ Bạc Thân Thiết'; tierClass = 'text-slate-200 border-slate-400/40 bg-slate-700/40'; }
+        else if (total >= 100000) { tierLabel = '🛡️ Đồng Uy Tín'; tierClass = 'text-amber-600 border-amber-600/40 bg-amber-950/30'; }
+
+        tr.innerHTML = `
+          <td class="px-4 py-3 font-mono font-medium text-white flex items-center gap-2">
+            <span>${escapeHtml(u.email)}</span>
+            ${isSuperAdmin ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">CHỦ SHOP</span>' : ''}
+          </td>
+          <td class="px-4 py-3 font-semibold text-slate-200">${escapeHtml(u.name || 'Khách Hàng')}</td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${isAdmin ? 'bg-red-500/20 text-red-300 border-red-500/40' : 'bg-slate-800 text-slate-300 border-slate-700'}">
+              ${isSuperAdmin ? '👑 Super Admin' : (isAdmin ? '🛡️ Admin Trực Ca' : '👤 Khách Hàng')}
+            </span>
+          </td>
+          <td class="px-4 py-3 font-mono text-emerald-400 font-bold">${new Intl.NumberFormat('vi-VN').format(total)} ₫</td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${tierClass}">${tierLabel}</span>
+          </td>
+          <td class="px-4 py-3 text-right space-x-1.5 whitespace-nowrap">
+            ${!isSuperAdmin ? `
+              <button onclick="toggleAdminRole('${escapeHtml(u.email)}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border ${isAdmin ? 'bg-rose-500/15 border-rose-500/30 text-rose-300 hover:bg-rose-500/25' : 'bg-red-600 hover:bg-red-500 text-white'} transition-all cursor-pointer">
+                ${isAdmin ? 'Hạ Quyền' : 'Cấp Admin'}
+              </button>
+            ` : ''}
+            <button onclick="openUserEditModal('${escapeHtml(u.email)}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#1a1f2e] hover:bg-[#252d42] border border-[#2b364d] text-slate-300 hover:text-white transition-all cursor-pointer">
+              Sửa VIP
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function toggleAdminRole(email) {
+      const user = masterState.users[email.toLowerCase()];
+      if (!user) return;
+
+      const newRole = user.role === 'admin' ? 'customer' : 'admin';
+      user.role = newRole;
+
+      saveUsersToStorage();
+      renderUsersTable();
+      updateKpiMetrics();
+
+      showMasterToast(`Đã chuyển vai trò của [${user.name}] thành: ${newRole === 'admin' ? '🛡️ Admin' : '👤 Khách Hàng'}!`, 'success');
+    }
+
+    function openUserEditModal(email) {
+      const modal = document.getElementById('userEditModal');
+      const u = masterState.users[email.toLowerCase()];
+      if (!u) return;
+
+      document.getElementById('uemEmail').value = u.email;
+      document.getElementById('uemEmail').disabled = true;
+      document.getElementById('uemName').value = u.name || '';
+      document.getElementById('uemPassword').value = '';
+      document.getElementById('uemRole').value = u.role || 'customer';
+      document.getElementById('uemTotalSpent').value = u.totalSpent || 0;
+
+      modal.classList.remove('hidden');
+    }
+
+    function openCreateUserModal() {
+      const modal = document.getElementById('userEditModal');
+      document.getElementById('uemEmail').value = '';
+      document.getElementById('uemEmail').disabled = false;
+      document.getElementById('uemName').value = '';
+      document.getElementById('uemPassword').value = '123456';
+      document.getElementById('uemRole').value = 'customer';
+      document.getElementById('uemTotalSpent').value = 0;
+      modal.classList.remove('hidden');
+    }
+
+    function closeUserEditModal() {
+      document.getElementById('userEditModal').classList.add('hidden');
+    }
+
+    function saveUserFromModal() {
+      const email = document.getElementById('uemEmail').value.trim().toLowerCase();
+      const name = document.getElementById('uemName').value.trim();
+      const role = document.getElementById('uemRole').value;
+      const totalSpent = parseInt(document.getElementById('uemTotalSpent').value) || 0;
+      const pass = document.getElementById('uemPassword').value.trim();
+
+      if (!email || !name) {
+        alert('Vui lòng nhập đầy đủ Email và Tên!');
+        return;
+      }
+
+      const isDuplicateName = Object.values(masterState.users).some(u => 
+        u.email !== email && u.name && u.name.trim().toLowerCase() === name.toLowerCase()
+      );
+      if (isDuplicateName) {
+        alert(`Tên hiển thị [${name}] đã được sử dụng bởi một tài khoản khác! Vui lòng chọn tên khác.`);
+        return;
+      }
+
+      const existing = masterState.users[email] || {};
+      masterState.users[email] = {
+        ...existing,
+        email: email,
+        name: name,
+        role: role,
+        totalSpent: totalSpent
+      };
+      if (pass) masterState.users[email].password = pass;
+
+      saveUsersToStorage();
+      closeUserEditModal();
+      renderUsersTable();
+      updateKpiMetrics();
+      showMasterToast(`Đã lưu tài khoản [${email}] thành công!`, 'success');
+    }
+
+    function saveUsersToStorage() {
+      localStorage.setItem(MASTER_USERS_KEY, JSON.stringify(masterState.users));
+      if (syncChannel) {
+        syncChannel.postMessage({ type: 'USERS_UPDATED', users: masterState.users });
+      }
+    }
+
+    // ================= TAB 5: AUDIT LOGS THỜI GIAN THỰC (TỪNG GIÂY - PHÂN TRANG 20 HĐ) =================
+    let currentAuditSearch = '';
+    let currentAuditFilterAction = 'all';
+    let currentAuditPage = 1;
+    const AUDIT_PAGE_SIZE = 20;
+
+    function filterAuditLogs() {
+      currentAuditSearch = (document.getElementById('auditSearchInput').value || '').toLowerCase().trim();
+      currentAuditFilterAction = document.getElementById('auditActionFilter').value;
+      currentAuditPage = 1; // Luôn reset về trang 1 khi lọc hoặc tìm kiếm
+      renderAuditLogsTable();
+    }
+
+    function clearAuditSearchInput() {
+      const input = document.getElementById('auditSearchInput');
+      const clearBtn = document.getElementById('auditClearSearchBtn');
+      if (input) input.value = '';
+      if (clearBtn) clearBtn.classList.add('hidden');
+      currentAuditSearch = '';
+      currentAuditPage = 1; // Luôn reset về trang 1
+      renderAuditLogsTable();
+    }
+
+    function changeAuditPage(newPage) {
+      currentAuditPage = newPage;
+      renderAuditLogsTable();
+      const auditContainer = document.getElementById('masterView_audit');
+      if (auditContainer) {
+        auditContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function renderAuditLogsTable() {
+      const tbody = document.getElementById('masterAuditTableBody');
+      const countEl = document.getElementById('auditTotalCount');
+      const clearBtn = document.getElementById('auditClearSearchBtn');
+      const paginationEl = document.getElementById('masterAuditPagination');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (clearBtn) {
+        if (currentAuditSearch) clearBtn.classList.remove('hidden');
+        else clearBtn.classList.add('hidden');
+      }
+
+      let logs = [...masterState.auditLogs];
+
+      // Tự động chuẩn hóa dữ liệu cho từng bản ghi log (Self-Healing trích xuất Email & Tên)
+      logs.forEach(l => {
+        // Trích xuất email nếu log chưa có email hoặc bị fallback thành guest/local
+        if (!l.email || l.email === 'khach@local' || l.email === 'guest@designerstore.vn') {
+          if (l.userEmail && l.userEmail !== 'guest@designerstore.vn' && l.userEmail !== 'khach@local') {
+            l.email = l.userEmail;
+          } else {
+            const matchEmail = (l.detail || '').match(/([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)/i);
+            if (matchEmail) l.email = matchEmail[1];
+          }
+        }
+        // Trích xuất name nếu log chưa có name hoặc bị fallback thành Ẩn danh
+        if (!l.name || l.name === 'Ẩn danh' || l.name === 'Khách Vãng Lai') {
+          if (l.userName && l.userName !== 'Khách Vãng Lai' && l.userName !== 'Ẩn danh') {
+            l.name = l.userName;
+          } else {
+            const matchName = (l.detail || '').match(/Tên:\s*([^)]+)/i) || (l.detail || '').match(/thành công:\s*([^(]+)/i);
+            if (matchName) l.name = matchName[1].trim();
+          }
+        }
+        if (!l.email) l.email = 'guest@designerstore.vn';
+        if (!l.name) l.name = 'Khách Vãng Lai';
+      });
+
+      // Lọc theo loại hành động
+      if (currentAuditFilterAction !== 'all') {
+        if (currentAuditFilterAction === 'REGISTER_VERIFIED') {
+          logs = logs.filter(l => l.action === 'REGISTER_VERIFIED');
+        } else if (currentAuditFilterAction === 'OTP_REQUEST') {
+          logs = logs.filter(l => l.action === 'OTP_REQUEST' || l.action === 'OTP_RESEND');
+        } else if (currentAuditFilterAction === 'LOGIN') {
+          logs = logs.filter(l => l.action === 'LOGIN');
+        } else if (currentAuditFilterAction === 'LOGOUT') {
+          logs = logs.filter(l => l.action === 'LOGOUT');
+        } else if (currentAuditFilterAction === 'PURCHASE_CONFIRM') {
+          logs = logs.filter(l => l.action === 'PURCHASE_CONFIRM' || l.action === 'ORDER' || l.action === 'ORDER_CREATED');
+        } else if (currentAuditFilterAction === 'ORDER_COMPLETED') {
+          logs = logs.filter(l => l.action === 'ORDER_COMPLETED');
+        } else if (currentAuditFilterAction === 'FEEDBACK_SUBMIT') {
+          logs = logs.filter(l => l.action === 'FEEDBACK_SUBMIT');
+        } else if (currentAuditFilterAction === 'ONLINE_VISIT') {
+          logs = logs.filter(l => l.action === 'ONLINE_VISIT' || l.action === 'ONLINE');
+        } else if (currentAuditFilterAction === 'MAINTENANCE_TOGGLE') {
+          logs = logs.filter(l => l.action === 'MAINTENANCE_TOGGLE');
+        } else if (currentAuditFilterAction === 'SUPPORT_CHAT_OPEN') {
+          logs = logs.filter(l => l.action === 'SUPPORT_CHAT_OPEN');
+        } else if (currentAuditFilterAction === 'BLOCKED') {
+          logs = logs.filter(l => l.action === 'BLOCKED');
+        } else {
+          logs = logs.filter(l => l.action === currentAuditFilterAction);
+        }
+      }
+
+      // Tìm kiếm toàn diện đa trường (Email, Tên, IP, Nội dung chi tiết, Hành động)
+      if (currentAuditSearch) {
+        logs = logs.filter(l => {
+          const detailStr = (l.detail || '').toLowerCase();
+          const emailStr = (l.email || '').toLowerCase();
+          const nameStr = (l.name || '').toLowerCase();
+          const ipStr = (l.ip || '').toLowerCase();
+          const actionStr = (l.action || '').toLowerCase();
+          const devStr = (l.device || '').toLowerCase();
+          return emailStr.includes(currentAuditSearch) ||
+                 nameStr.includes(currentAuditSearch) ||
+                 detailStr.includes(currentAuditSearch) ||
+                 ipStr.includes(currentAuditSearch) ||
+                 actionStr.includes(currentAuditSearch) ||
+                 devStr.includes(currentAuditSearch);
+        });
+      }
+
+      const totalItems = logs.length;
+      if (countEl) countEl.innerText = totalItems;
+
+      // Sắp xếp bản ghi mới nhất lên đầu (Mới nhất ở trên cùng trang 1)
+      logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+      // Tính toán phân trang chính xác 20 hoạt động / 1 trang
+      const totalPages = Math.max(1, Math.ceil(totalItems / AUDIT_PAGE_SIZE));
+      if (currentAuditPage > totalPages) currentAuditPage = totalPages;
+      if (currentAuditPage < 1) currentAuditPage = 1;
+
+      const startIndex = (currentAuditPage - 1) * AUDIT_PAGE_SIZE;
+      const endIndex = Math.min(startIndex + AUDIT_PAGE_SIZE, totalItems);
+      const sliced = logs.slice(startIndex, endIndex);
+
+      if (totalItems === 0 || sliced.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="px-4 py-8 text-center text-slate-500 italic">
+              Không tìm thấy nhật ký hoạt động nào khớp với từ khóa hoặc bộ lọc của bạn.
+            </td>
+          </tr>
+        `;
+        if (paginationEl) {
+          paginationEl.innerHTML = `
+            <div class="text-slate-500 font-mono text-[11px] py-1">Không có dữ liệu hoạt động để hiển thị.</div>
+          `;
+        }
+        return;
+      }
+
+      sliced.forEach(log => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-[#141824] transition-colors border-b border-[#1c2233]';
+
+        let badgeAction = '';
+        if (log.action === 'REGISTER_VERIFIED') {
+          badgeAction = '<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-teal-500/20 text-teal-300 border border-teal-500/30 whitespace-nowrap">📝 ĐĂNG KÝ MỚI</span>';
+        } else if (log.action === 'OTP_REQUEST') {
+          badgeAction = '<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 whitespace-nowrap">📩 MÃ OTP GMAIL</span>';
+        } else if (log.action === 'OTP_RESEND') {
+          badgeAction = '<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 whitespace-nowrap">🔄 GỬI LẠI OTP</span>';
+        } else if (log.action === 'LOGIN') {
+          badgeAction = '<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 whitespace-nowrap">🔑 ĐĂNG NHẬP</span>';
+        } else if (log.action === 'LOGOUT') {
+          badgeAction = '<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-700 text-slate-300 border border-slate-600 whitespace-nowrap">🚪 ĐĂNG XUẤT</span>';
+        } else if (log.action === 'PURCHASE_CONFIRM' || log.action === 'ORDER' || log.action === 'ORDER_CREATED') {
+          badgeAction = '<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30 whitespace-nowrap">🛒 MUA HÀNG</span>';
+        } else if (log.action === 'ORDER_COMPLETED') {
+          badgeAction = '<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 whitespace-nowrap">✅ HOÀN TẤT ĐƠN</span>';
+        } else if (log.action === 'FEEDBACK_SUBMIT') {
+          badgeAction = '<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/30 whitespace-nowrap">⭐ ĐÁNH GIÁ ĐƠN</span>';
+        } else if (log.action === 'ONLINE_VISIT' || log.action === 'ONLINE') {
+          badgeAction = '<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 whitespace-nowrap">🌐 TRUY CẬP WEB</span>';
+        } else if (log.action === 'MAINTENANCE_TOGGLE') {
+          badgeAction = '<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-rose-500/20 text-rose-300 border border-rose-500/30 whitespace-nowrap">🛠️ BẢO TRÌ SHOP</span>';
+        } else if (log.action === 'SUPPORT_CHAT_OPEN') {
+          badgeAction = '<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-pink-500/20 text-pink-300 border border-pink-500/30 whitespace-nowrap">💬 CSKH 24/7</span>';
+        } else if (log.action === 'BLOCKED') {
+          badgeAction = '<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-rose-500/20 text-rose-300 border border-rose-500/30 whitespace-nowrap">🚫 BỊ CHẶN</span>';
+        } else {
+          badgeAction = `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-800 text-slate-300 border border-slate-700 whitespace-nowrap">${escapeHtml(log.action || 'HOẠT ĐỘNG')}</span>`;
+        }
+
+        const isIpBlocked = masterState.blacklist.some(b => b.type === 'ip' && b.value === log.ip);
+
+        tr.innerHTML = `
+          <td class="px-4 py-2.5 font-mono text-[11px] text-slate-300 whitespace-nowrap">${log.timeFormatted || log.timestamp}</td>
+          <td class="px-4 py-2.5 whitespace-nowrap">${badgeAction}</td>
+          <td class="px-4 py-2.5">
+            <div class="font-bold text-white text-xs">${escapeHtml(log.name || 'Khách Hàng')}</div>
+            <div class="font-mono text-[11px] text-emerald-400 font-semibold tracking-tight">${escapeHtml(log.email || 'guest@designerstore.vn')}</div>
+          </td>
+          <td class="px-4 py-2.5 max-w-xs sm:max-w-md">
+            <div class="text-xs text-slate-200 font-medium leading-relaxed bg-[#0e121c] p-2 rounded-lg border border-[#1f273a]" title="${escapeHtml(log.detail || '')}">${escapeHtml(log.detail || 'Hoạt động bình thường')}</div>
+          </td>
+          <td class="px-4 py-2.5 font-mono text-cyan-300 font-semibold whitespace-nowrap text-xs">${escapeHtml(log.ip || '127.0.0.1')}</td>
+          <td class="px-4 py-2.5 text-slate-300 whitespace-nowrap text-[11px]">${escapeHtml(log.device || 'Desktop Windows')}</td>
+          <td class="px-4 py-2.5 text-right whitespace-nowrap">
+            ${log.ip && log.ip !== '127.0.0.1' ? `
+              <button onclick="quickBlockIp('${escapeHtml(log.ip)}', '${escapeHtml(log.email || '')}')" class="px-2.5 py-1 rounded-lg text-[10px] font-bold border ${isIpBlocked ? 'bg-slate-800 text-slate-400 border-slate-700 cursor-not-allowed' : 'bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30 cursor-pointer'}" ${isIpBlocked ? 'disabled' : ''}>
+                ${isIpBlocked ? 'Đã Chặn' : '🚫 Chặn IP'}
+              </button>
+            ` : '<span class="text-slate-600 text-[10px]">An toàn</span>'}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Render bộ điều hướng phân trang 20 hoạt động / trang
+      renderAuditPaginationControls(totalItems, totalPages, startIndex, endIndex);
+    }
+
+    function renderAuditPaginationControls(totalItems, totalPages, startIndex, endIndex) {
+      const container = document.getElementById('masterAuditPagination');
+      if (!container) return;
+
+      if (totalItems === 0) {
+        container.innerHTML = `<div class="text-slate-500 font-mono text-[11px]">Không có dữ liệu hoạt động.</div>`;
+        return;
+      }
+
+      // Tạo dải số trang thông minh
+      const pages = [];
+      if (totalPages <= 7) {
+        for (let i = 1; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        if (currentAuditPage > 3) pages.push('...');
+        const start = Math.max(2, currentAuditPage - 1);
+        const end = Math.min(totalPages - 1, currentAuditPage + 1);
+        for (let i = start; i <= end; i++) {
+          if (!pages.includes(i)) pages.push(i);
+        }
+        if (currentAuditPage < totalPages - 2) pages.push('...');
+        if (!pages.includes(totalPages)) pages.push(totalPages);
+      }
+
+      let pageButtonsHtml = '';
+      pages.forEach(p => {
+        if (p === '...') {
+          pageButtonsHtml += `<span class="px-2 py-1 text-slate-500 font-bold select-none text-xs">...</span>`;
+        } else {
+          const isActive = p === currentAuditPage;
+          pageButtonsHtml += `
+            <button onclick="changeAuditPage(${p})" class="min-w-[32px] h-8 px-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
+              isActive 
+                ? 'bg-red-600 text-white shadow-md shadow-red-600/30 border border-red-500 font-black' 
+                : 'bg-[#151926] hover:bg-[#202738] text-slate-300 hover:text-white border border-[#2b354a]'
+            }">${p}</button>
+          `;
+        }
+      });
+
+      const isFirst = currentAuditPage === 1;
+      const isLast = currentAuditPage === totalPages;
+
+      container.innerHTML = `
+        <div class="flex items-center gap-2 text-slate-400 font-mono text-[11px]">
+          <span>Hiển thị <strong class="text-white">${startIndex + 1}</strong> - <strong class="text-white">${endIndex}</strong> trong tổng số <strong class="text-emerald-400 font-bold">${totalItems}</strong> hoạt động</span>
+          <span class="text-slate-600">•</span>
+          <span>Trang <strong class="text-cyan-300 font-bold">${currentAuditPage}</strong> / <strong class="text-slate-300">${totalPages}</strong></span>
+        </div>
+
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <button onclick="changeAuditPage(1)" ${isFirst ? 'disabled' : ''} class="px-2.5 h-8 rounded-xl text-xs font-bold border transition-all flex items-center gap-1 ${
+            isFirst 
+              ? 'bg-[#10131d] text-slate-600 border-[#1c2233] cursor-not-allowed' 
+              : 'bg-[#151926] hover:bg-[#202738] text-slate-300 hover:text-white border-[#2b354a] cursor-pointer'
+          }" title="Về trang đầu tiên">
+            ⏮ Đầu
+          </button>
+          
+          <button onclick="changeAuditPage(${currentAuditPage - 1})" ${isFirst ? 'disabled' : ''} class="px-2.5 h-8 rounded-xl text-xs font-bold border transition-all flex items-center gap-1 ${
+            isFirst 
+              ? 'bg-[#10131d] text-slate-600 border-[#1c2233] cursor-not-allowed' 
+              : 'bg-[#151926] hover:bg-[#202738] text-slate-300 hover:text-white border-[#2b354a] cursor-pointer'
+          }" title="Trang trước">
+            ◀ Trước
+          </button>
+
+          <div class="flex items-center gap-1">
+            ${pageButtonsHtml}
+          </div>
+
+          <button onclick="changeAuditPage(${currentAuditPage + 1})" ${isLast ? 'disabled' : ''} class="px-2.5 h-8 rounded-xl text-xs font-bold border transition-all flex items-center gap-1 ${
+            isLast 
+              ? 'bg-[#10131d] text-slate-600 border-[#1c2233] cursor-not-allowed' 
+              : 'bg-[#151926] hover:bg-[#202738] text-slate-300 hover:text-white border-[#2b354a] cursor-pointer'
+          }" title="Trang sau">
+            Sau ▶
+          </button>
+
+          <button onclick="changeAuditPage(${totalPages})" ${isLast ? 'disabled' : ''} class="px-2.5 h-8 rounded-xl text-xs font-bold border transition-all flex items-center gap-1 ${
+            isLast 
+              ? 'bg-[#10131d] text-slate-600 border-[#1c2233] cursor-not-allowed' 
+              : 'bg-[#151926] hover:bg-[#202738] text-slate-300 hover:text-white border-[#2b354a] cursor-pointer'
+          }" title="Đến trang cuối cùng">
+            Cuối ⏭
+          </button>
+        </div>
+      `;
+    }
+
+    function quickBlockIp(ip, email) {
+      if (confirm(`Bạn có chắc chắn muốn CHẶN địa chỉ IP [${ip}] khỏi cửa hàng ngay lập tức?`)) {
+        masterState.blacklist.push({
+          id: 'bl_' + Date.now(),
+          type: 'ip',
+          value: ip,
+          reason: `Chặn khẩn cấp từ Audit Log (User: ${email || 'Unknown'})`,
+          blockedAt: new Date().toLocaleString('vi-VN')
+        });
+        saveBlacklistToStorage();
+        renderAuditLogsTable();
+        renderBlacklistItems();
+        updateKpiMetrics();
+        showMasterToast(`Đã đưa IP [${ip}] vào danh sách đen!`, 'success');
+      }
+    }
+
+    function clearAuditLogs() {
+      if (confirm('Xóa toàn bộ nhật ký đăng nhập hiện tại?')) {
+        masterState.auditLogs = [];
+        localStorage.setItem(MASTER_AUDIT_KEY, JSON.stringify([]));
+        renderAuditLogsTable();
+        showMasterToast('Đã làm sạch nhật ký thành công!', 'info');
+      }
+    }
+
+    function exportAuditLogsCsv() {
+      if (masterState.auditLogs.length === 0) {
+        alert('Không có dữ liệu nhật ký để xuất!');
+        return;
+      }
+      let csv = '\uFEFFTHỜI GIAN,HÀNH ĐỘNG,EMAIL,TÊN,CHI TIẾT HOẠT ĐỘNG,ĐỊA CHỈ IP,THIẾT BỊ,TRÌNH DUYỆT\n';
+      masterState.auditLogs.forEach(l => {
+        const detailEsc = (l.detail || '').replace(/"/g, '""');
+        csv += `"${l.timeFormatted || l.timestamp}","${l.action || ''}","${l.email || ''}","${l.name || ''}","${detailEsc}","${l.ip || ''}","${l.device || ''}","${l.browser || ''}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Audit_Logs_DesignerStore_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showMasterToast('Đã tải xuống file đối soát CSV thành công!', 'success');
+    }
+
+    // ================= TAB 6: CHẶN IP & CHỐNG GIAN LẬN =================
+    function renderBlacklistItems() {
+      const container = document.getElementById('masterBlacklistItems');
+      const badge = document.getElementById('blCountBadge');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (badge) badge.innerText = `${masterState.blacklist.length} đối tượng`;
+
+      if (masterState.blacklist.length === 0) {
+        container.innerHTML = `
+          <div class="card-glass rounded-xl p-6 text-center text-slate-500 text-xs">
+            🎉 Hệ thống an toàn! Chưa có địa chỉ IP hay Email nào nằm trong danh sách đen.
+          </div>
+        `;
+        return;
+      }
+
+      masterState.blacklist.forEach(b => {
+        const item = document.createElement('div');
+        item.className = 'card-glass rounded-xl p-3 flex items-center justify-between gap-3 text-xs border border-rose-900/50 hover:border-rose-500/50 transition-colors';
+        item.innerHTML = `
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 uppercase">${b.type}</span>
+              <span class="font-mono font-bold text-white text-xs truncate">${escapeHtml(b.value)}</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Lý do: <span class="text-rose-200">${escapeHtml(b.reason || 'Vi phạm chính sách')}</span> • Chặn lúc: ${b.blockedAt}</p>
+          </div>
+          <button onclick="removeBlacklistEntry('${b.id}')" class="px-3 py-1.5 rounded-lg bg-[#181d2c] hover:bg-emerald-950/40 text-slate-300 hover:text-emerald-400 border border-[#273248] hover:border-emerald-500/40 font-bold text-[11px] transition-colors cursor-pointer flex-shrink-0">
+            Bỏ Chặn
+          </button>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function addBlacklistEntry() {
+      const type = document.getElementById('blTypeInput').value;
+      const val = document.getElementById('blValueInput').value.trim();
+      const reason = document.getElementById('blReasonInput').value.trim() || 'Chặn thủ công từ Master';
+
+      if (!val) {
+        alert('Vui lòng nhập IP hoặc Email cần chặn!');
+        return;
+      }
+
+      masterState.blacklist.push({
+        id: 'bl_' + Date.now(),
+        type: type,
+        value: val,
+        reason: reason,
+        blockedAt: new Date().toLocaleString('vi-VN')
+      });
+
+      saveBlacklistToStorage();
+      document.getElementById('blValueInput').value = '';
+      document.getElementById('blReasonInput').value = '';
+      renderBlacklistItems();
+      updateKpiMetrics();
+      showMasterToast(`Đã thêm [${val}] vào danh sách đen!`, 'success');
+    }
+
+    function removeBlacklistEntry(id) {
+      masterState.blacklist = masterState.blacklist.filter(b => b.id !== id);
+      saveBlacklistToStorage();
+      renderBlacklistItems();
+      updateKpiMetrics();
+      showMasterToast('Đã xóa đối tượng khỏi danh sách đen thành công!', 'info');
+    }
+
+    function saveBlacklistToStorage() {
+      localStorage.setItem(MASTER_BLACKLIST_KEY, JSON.stringify(masterState.blacklist));
+      if (syncChannel) {
+        syncChannel.postMessage({ type: 'BLACKLIST_UPDATED', blacklist: masterState.blacklist });
+      }
+    }
+
+    // ================= TAB 7: VOUCHERS & KHUYẾN MÃI =================
+    function renderVouchersGrid() {
+      const container = document.getElementById('masterVouchersGrid');
+      if (!container) return;
+      container.innerHTML = '';
+
+      masterState.vouchers.forEach((v, idx) => {
+        const isAct = v.active === true || v.status === 'active' || (v.active !== false && v.status !== 'inactive');
+        const discVal = v.discount !== undefined ? v.discount : (v.discountValue || 0);
+
+        const card = document.createElement('div');
+        card.className = 'card-glass rounded-2xl p-4 flex flex-col justify-between space-y-3 border border-amber-500/30';
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="font-mono font-black text-amber-400 text-sm tracking-wider bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/30">${escapeHtml(v.code)}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded ${isAct ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-400'} font-bold">
+                ${isAct ? 'Đang Chạy' : 'Tạm Tắt'}
+              </span>
+            </div>
+            <div class="text-xs text-slate-300">
+              Giảm trực tiếp: <strong class="text-emerald-400 font-mono text-sm">${new Intl.NumberFormat('vi-VN').format(discVal)} ₫</strong>
+            </div>
+            <div class="text-[11px] text-slate-400 mt-1">
+              Đã sử dụng: <span class="font-mono text-white">${v.usedCount || 0}</span> / ${v.maxUses || 100} lượt
+            </div>
+          </div>
+          <div class="flex items-center gap-2 pt-2 border-t border-[#1e2538]">
+            <button onclick="toggleVoucherActive(${idx})" class="flex-1 py-1.5 rounded-lg bg-[#181d2c] hover:bg-[#22293d] text-[11px] font-bold text-slate-300 hover:text-white cursor-pointer">
+              ${isAct ? 'Tạm Dừng' : 'Kích Hoạt'}
+            </button>
+            <button onclick="deleteVoucher(${idx})" class="px-3 py-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-[11px] font-bold text-rose-300 cursor-pointer">
+              Xóa
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function openCreateVoucherModal() {
+      const code = prompt('Nhập mã Voucher mới (ví dụ: GIAM15K):');
+      if (!code) return;
+      const discount = parseInt(prompt('Nhập số tiền giảm (VNĐ, ví dụ: 15000):') || '10000');
+      const maxUses = parseInt(prompt('Nhập số lượt dùng tối đa:') || '50');
+
+      masterState.vouchers.push({
+        code: code.trim().toUpperCase(),
+        discount: discount,
+        discountValue: discount,
+        maxUses: maxUses,
+        usedCount: 0,
+        active: true,
+        status: 'active',
+        type: 'fixed'
+      });
+
+      localStorage.setItem(MASTER_VOUCHERS_KEY, JSON.stringify(masterState.vouchers));
+      if (syncChannel) syncChannel.postMessage({ type: 'VOUCHERS_UPDATED', vouchers: masterState.vouchers });
+      renderVouchersGrid();
+      showMasterToast(`Đã tạo mã giảm giá [${code.toUpperCase()}] thành công!`, 'success');
+    }
+
+    function toggleVoucherActive(idx) {
+      if (masterState.vouchers[idx]) {
+        const v = masterState.vouchers[idx];
+        const isCurrentlyActive = v.active === true || v.status === 'active';
+        v.active = !isCurrentlyActive;
+        v.status = v.active ? 'active' : 'inactive';
+        localStorage.setItem(MASTER_VOUCHERS_KEY, JSON.stringify(masterState.vouchers));
+        if (syncChannel) syncChannel.postMessage({ type: 'VOUCHERS_UPDATED', vouchers: masterState.vouchers });
+        renderVouchersGrid();
+      }
+    }
+
+    function deleteVoucher(idx) {
+      if (confirm('Xóa mã giảm giá này?')) {
+        masterState.vouchers.splice(idx, 1);
+        localStorage.setItem(MASTER_VOUCHERS_KEY, JSON.stringify(masterState.vouchers));
+        if (syncChannel) syncChannel.postMessage({ type: 'VOUCHERS_UPDATED', vouchers: masterState.vouchers });
+        renderVouchersGrid();
+      }
+    }
+
+    // ================= TAB 8: SAO LƯU & PHỤC HỒI DỮ LIỆU =================
+    function downloadFullBackupJson() {
+      const backupData = {
+        app: 'DesignerStore_MasterDB',
+        version: '2.0',
+        exportedAt: new Date().toISOString(),
+        config: masterState.config,
+        products: masterState.products,
+        users: masterState.users,
+        auditLogs: masterState.auditLogs,
+        blacklist: masterState.blacklist,
+        vouchers: masterState.vouchers,
+        orders: masterState.orders
+      };
+
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(backupData, null, 2));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = `DesignerStore_FullBackup_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+
+      showMasterToast('✅ Đã xuất bản sao lưu toàn hệ thống thành công!', 'success');
+    }
+
+    function handleRestoreBackupFile(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (!parsed || parsed.app !== 'DesignerStore_MasterDB') {
+            alert('Tệp tin không đúng định dạng bản sao lưu Designer Store!');
+            return;
+          }
+
+          if (confirm(`Khôi phục dữ liệu từ bản sao lưu ngày [${parsed.exportedAt || 'Không rõ'}]? Toàn bộ dữ liệu hiện tại sẽ được cập nhật.`)) {
+            if (parsed.config) localStorage.setItem(MASTER_CONFIG_KEY, JSON.stringify(parsed.config));
+            if (parsed.products) localStorage.setItem(MASTER_PRODUCTS_KEY, JSON.stringify(parsed.products));
+            if (parsed.users) localStorage.setItem(MASTER_USERS_KEY, JSON.stringify(parsed.users));
+            if (parsed.auditLogs) localStorage.setItem(MASTER_AUDIT_KEY, JSON.stringify(parsed.auditLogs));
+            if (parsed.blacklist) localStorage.setItem(MASTER_BLACKLIST_KEY, JSON.stringify(parsed.blacklist));
+            if (parsed.vouchers) localStorage.setItem(MASTER_VOUCHERS_KEY, JSON.stringify(parsed.vouchers));
+            if (parsed.orders) localStorage.setItem(MASTER_ORDERS_KEY, JSON.stringify(parsed.orders));
+
+            loadAllSystemData();
+            renderAllViews();
+
+            if (syncChannel) {
+              syncChannel.postMessage({ type: 'FULL_RESTORE_TRIGGERED' });
+            }
+
+            showMasterToast('🎉 Phục hồi toàn bộ hệ thống từ file backup thành công!', 'success');
+          }
+        } catch (err) {
+          alert('Lỗi đọc tệp backup: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    // ================= TIỆN ÍCH DÙNG CHUNG =================
+    function handleSyncChannelMessage(data) {
+      if (!data || !data.type) return;
+
+      if (data.type === 'CONFIG_UPDATED') {
+        if (data.config) {
+          masterState.config = data.config;
+          updateMaintenanceUI();
+          applyMasterPortalBranding(data.config);
+          if (masterState.currentTab === 'config') {
+            populateConfigInputs();
+          }
+          showMasterToast(`🔄 Cấu hình & tên shop vừa được cập nhật: [${data.config.shopName || 'DESIGNER STORE'}]`, 'info');
+        }
+      } else if (data.type === 'USER_AUDIT_LOG_ADDED') {
+        loadAuditLogsFromStorage();
+        if (masterState.currentTab === 'audit' || masterState.currentTab === 'dashboard') {
+          renderAuditLogsTable();
+          updateKpiMetrics();
+        }
+      } else if (data.type === 'USERS_UPDATED') {
+        loadUsersFromStorage();
+        if (masterState.currentTab === 'users' || masterState.currentTab === 'dashboard') {
+          renderUsersTable();
+          updateKpiMetrics();
+        }
+      } else if (data.type === 'NEW_ORDER_CREATED' || data.type === 'ORDER_UPDATED' || data.type === 'CHAT_MESSAGE_SENT') {
+        loadOrdersFromStorage();
+        updateKpiMetrics();
+        if (masterState.currentTab === 'dashboard') {
+          renderDashboardCharts();
+          renderAuditLogsTable();
+        }
+      } else if (data.type === 'BLACKLIST_UPDATED') {
+        loadBlacklistFromStorage();
+        if (masterState.currentTab === 'blacklist' || masterState.currentTab === 'dashboard') {
+          renderBlacklistItems();
+          updateKpiMetrics();
+        }
+      } else if (data.type === 'VOUCHERS_UPDATED') {
+        loadVouchersFromStorage();
+        if (masterState.currentTab === 'vouchers') {
+          renderVouchersGrid();
+        }
+      } else if (data.type === 'PRODUCTS_UPDATED') {
+        loadProductsFromStorage();
+        if (masterState.currentTab === 'products') {
+          renderProductsGrid();
+        }
+      } else if (data.type === 'FEEDBACK_SUBMITTED') {
+        loadAuditLogsFromStorage();
+        loadOrdersFromStorage();
+        updateKpiMetrics();
+        if (masterState.currentTab === 'audit' || masterState.currentTab === 'dashboard') {
+          renderAuditLogsTable();
+        }
+      } else if (data.type === 'FULL_RESTORE_TRIGGERED') {
+        loadAllSystemData();
+        renderAllViews();
+        showMasterToast('🎉 Toàn bộ hệ thống vừa được phục hồi từ tab khác!', 'info');
+      }
+    }
+
+    function showMasterToast(msg, type = 'info') {
+      const toast = document.getElementById('masterToast');
+      const text = document.getElementById('masterToastMsg');
+      const icon = document.getElementById('masterToastIcon');
+      if (!toast || !text) return;
+
+      icon.innerText = type === 'success' ? '✅' : (type === 'error' ? '❌' : 'ℹ️');
+      text.innerText = msg;
+      toast.classList.remove('hidden');
+
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3500);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
