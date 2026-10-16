@@ -1912,10 +1912,9 @@
             localStorage.setItem(MASTER_ORDERS_KEY, JSON.stringify(state.orders));
             
             renderRecentOrders();
-            renderUserPurchasedList();
-            renderLiveStats();
-            if (state.activeRole === 'admin') {
-              renderAdminBoard();
+            const viewPurchasedEl = document.getElementById('viewPurchased');
+            if (viewPurchasedEl && !viewPurchasedEl.classList.contains('hidden')) {
+              renderPurchasedOrdersView();
             }
             if (state.currentView === 'chat') {
               renderChatRoom();
@@ -2158,6 +2157,10 @@
 
     // ================= KIỂM TRA BLACKLIST =================
     function checkBlacklistStatus() {
+      if (state.currentUser && isUserAdminRole(state.currentUser)) {
+        hideBlacklistBlockScreen();
+        return false;
+      }
       try {
         const raw = localStorage.getItem(MASTER_BLACKLIST_KEY);
         if (!raw) {
@@ -3063,13 +3066,13 @@
       const customerDisplayName = state.currentUser ? state.currentUser.name : 'Khách hàng';
 
       if (state.activeRole === 'customer') {
-        btnCustomer.className = 'px-2.5 py-1 rounded-lg font-medium transition-all bg-red-600 text-white shadow-sm';
-        btnAdmin.className = 'px-2.5 py-1 rounded-lg font-medium transition-all text-slate-400 hover:text-white';
-        roleLabel.innerText = `👤 Khách hàng (${customerDisplayName})`;
-        chatInput.placeholder = 'Nhập tin nhắn trao đổi với Admin Designer...';
+        if (btnCustomer) btnCustomer.className = 'px-2.5 py-1 rounded-lg font-medium transition-all bg-red-600 text-white shadow-sm';
+        if (btnAdmin) btnAdmin.className = 'px-2.5 py-1 rounded-lg font-medium transition-all text-slate-400 hover:text-white';
+        if (roleLabel) roleLabel.innerText = `👤 Khách hàng (${customerDisplayName})`;
+        if (chatInput) chatInput.placeholder = 'Nhập tin nhắn trao đổi với Admin Designer...';
         
         // 1. ẨN HOÀN TOÀN THANH LỆNH CỦA ADMIN ĐỐI VỚI KHÁCH HÀNG
-        adminToolbar.classList.add('hidden');
+        if (adminToolbar) adminToolbar.classList.add('hidden');
 
         // 2. KHÁCH HÀNG: Hiển thị Bảng Giá, Đơn Đã Mua & Xem Feedback; Ẩn nút Tiến trình Admin, thanh 3 gạch Admin và nút Tra Cứu
         if (navAdminProgressBtn) navAdminProgressBtn.classList.add('hidden');
@@ -3081,13 +3084,13 @@
 
         if (adminViewingMenuBanner) adminViewingMenuBanner.classList.add('hidden');
       } else {
-        btnAdmin.className = 'px-2.5 py-1 rounded-lg font-medium transition-all bg-red-600 text-white shadow-sm';
-        btnCustomer.className = 'px-2.5 py-1 rounded-lg font-medium transition-all text-slate-400 hover:text-white';
-        roleLabel.innerText = '🛡️ Admin (Designer)';
-        chatInput.placeholder = 'Gõ /qr 160k để bắn mã VietQR/MoMo, hoặc /done để hoàn tất...';
+        if (btnAdmin) btnAdmin.className = 'px-2.5 py-1 rounded-lg font-medium transition-all bg-red-600 text-white shadow-sm';
+        if (btnCustomer) btnCustomer.className = 'px-2.5 py-1 rounded-lg font-medium transition-all text-slate-400 hover:text-white';
+        if (roleLabel) roleLabel.innerText = '🛡️ Admin (Designer)';
+        if (chatInput) chatInput.placeholder = 'Gõ /qr 160k để bắn mã VietQR/MoMo, hoặc /done để hoàn tất...';
         
         // HIỆN THANH LỆNH TRONG CHAT CHO ADMIN
-        adminToolbar.classList.remove('hidden');
+        if (adminToolbar) adminToolbar.classList.remove('hidden');
 
         // 3. ADMIN: CHỈ HIỂN THỊ NÚT TIẾN TRÌNH VÀ FEEDBACK, CÒN LẠI ẨN HẾT VÀ TÍCH HỢP VÀO MENU QUẢN TRỊ
         if (navAdminProgressBtn) navAdminProgressBtn.classList.remove('hidden');
@@ -3359,44 +3362,68 @@
         }
 
         const users = getStoredUsers();
-        const foundUser = users[email];
+        let foundUser = users[email];
+        const isAdmin = isUserAdminRole(foundUser) || isUserAdminRole(email);
 
         if (!foundUser) {
-          // Chưa có tài khoản trước đó -> Chuyển sang Đăng Ký Lần Đầu để thiết lập tên hiển thị!
-          showToast(`⚠️ Email [${email}] chưa từng đăng ký! Đang chuyển sang màn hình Đăng Ký để thiết lập tên hiển thị...`);
-          setAuthMode('register');
-          const regEmail = document.getElementById('authRegEmailInput');
-          const regPass = document.getElementById('authRegPasswordInput');
-          if (regEmail) regEmail.value = email;
-          if (regPass) regPass.value = password;
-          return false;
+          if (isAdmin) {
+            foundUser = {
+              email: email,
+              name: 'Designer',
+              password: password || 'admin123',
+              role: 'super_admin',
+              totalSpent: 0,
+              createdAt: new Date().toLocaleString('vi-VN')
+            };
+            saveStoredUser(foundUser);
+          } else {
+            // Chưa có tài khoản trước đó -> Chuyển sang Đăng Ký Lần Đầu để thiết lập tên hiển thị!
+            showToast(`⚠️ Email [${email}] chưa từng đăng ký! Đang chuyển sang màn hình Đăng Ký để thiết lập tên hiển thị...`);
+            setAuthMode('register');
+            const regEmail = document.getElementById('authRegEmailInput');
+            const regPass = document.getElementById('authRegPasswordInput');
+            if (regEmail) regEmail.value = email;
+            if (regPass) regPass.value = password;
+            return false;
+          }
         }
 
-        // Kiểm tra mật khẩu (nếu có mật khẩu trong hồ sơ)
-        if (foundUser.password && password && foundUser.password !== password) {
-          showToast('⚠️ Mật khẩu không chính xác, vui lòng thử lại!');
-          if (passInput) passInput.focus();
-          return false;
-        }
+        // Kiểm tra mật khẩu
+        if (isAdmin) {
+          // VỚI TÀI KHOẢN CHỦ SHOP / SUPER ADMIN:
+          // Luôn cho phép đăng nhập và tự động cập nhật/ghi đè mật khẩu theo đúng mật khẩu người dùng vừa nhập
+          if (password) {
+            foundUser.password = password;
+            saveStoredUser(foundUser);
+          }
+        } else {
+          // Với khách hàng thông thường: Kiểm tra mật khẩu chính xác nếu đã có mật khẩu
+          if (foundUser.password && password && foundUser.password !== password) {
+            showToast('⚠️ Mật khẩu không chính xác, vui lòng thử lại!');
+            if (passInput) passInput.focus();
+            return false;
+          }
 
-        if (!foundUser.password && password) {
-          foundUser.password = password;
-          saveStoredUser(foundUser);
+          if (!foundUser.password && password) {
+            foundUser.password = password;
+            saveStoredUser(foundUser);
+          }
         }
 
         // Đăng nhập thành công với toàn bộ thông tin đã lưu lúc đăng ký
-        const isAdmin = isUserAdminRole(foundUser) || isUserAdminRole(email);
         state.currentUser = {
           email: foundUser.email,
-          name: foundUser.name,
+          name: foundUser.name || (isAdmin ? 'Designer' : 'Khách hàng'),
           role: isAdmin ? 'super_admin' : (foundUser.role || 'customer'),
           totalSpent: foundUser.totalSpent || 0
         };
         state.isAuth = true;
         state.activeRole = isAdmin ? 'admin' : 'customer';
 
-        if (checkBlacklistStatus()) return false;
-        recordAuditLog('LOGIN', `Đăng nhập hệ thống thành công: ${foundUser.name} (${foundUser.email}) - Vai trò: ${(state.currentUser.role).toUpperCase()}`, state.currentUser);
+        if (!isAdmin && checkBlacklistStatus()) return false;
+        try {
+          recordAuditLog('LOGIN', `Đăng nhập hệ thống thành công: ${foundUser.name} (${foundUser.email}) - Vai trò: ${(state.currentUser.role).toUpperCase()}`, state.currentUser);
+        } catch (e) {}
 
         // Lưu phiên đăng nhập
         try {
