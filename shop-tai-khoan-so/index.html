@@ -385,7 +385,12 @@
               <label class="block text-xs font-semibold text-slate-300 mb-1">
                 Mật khẩu <span class="text-red-500">*</span>
               </label>
-              <input type="password" id="authPasswordInput" required value="" onkeydown="if(event.key==='Enter'){event.preventDefault();onAuthLoginSubmit(event);}" placeholder="••••••••" class="w-full text-sm bg-[#1a1f2c] border border-[#2d3448] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 font-mono">
+              <div class="relative">
+                <input type="password" id="authPasswordInput" required value="" onkeydown="if(event.key==='Enter'){event.preventDefault();onAuthLoginSubmit(event);}" placeholder="••••••••" class="w-full text-sm bg-[#1a1f2c] border border-[#2d3448] rounded-xl pl-3.5 pr-10 py-2.5 text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 font-mono">
+                <button type="button" onclick="togglePasswordVisibility('authPasswordInput', this)" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white transition-colors cursor-pointer" title="Hiện/ẩn mật khẩu">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                </button>
+              </div>
             </div>
 
             <button type="button" onclick="onAuthLoginSubmit(event)" id="authSubmitBtn" class="w-full py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-red-600/30 transition-all flex items-center justify-center gap-2 transform active:scale-95 cursor-pointer">
@@ -431,7 +436,12 @@
               <label class="block text-xs font-semibold text-slate-300 mb-1">
                 Mật khẩu đăng nhập (tối thiểu 6 ký tự) <span class="text-red-500">*</span>
               </label>
-              <input type="password" id="authRegPasswordInput" required value="" onkeydown="if(event.key==='Enter'){event.preventDefault();onAuthRegisterSubmit(event);}" placeholder="Tạo mật khẩu cho tài khoản" class="w-full text-sm bg-[#1a1f2c] border border-[#2d3448] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 font-mono">
+              <div class="relative">
+                <input type="password" id="authRegPasswordInput" required value="" onkeydown="if(event.key==='Enter'){event.preventDefault();onAuthRegisterSubmit(event);}" placeholder="Tạo mật khẩu cho tài khoản" class="w-full text-sm bg-[#1a1f2c] border border-[#2d3448] rounded-xl pl-3.5 pr-10 py-2.5 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 font-mono">
+                <button type="button" onclick="togglePasswordVisibility('authRegPasswordInput', this)" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white transition-colors cursor-pointer" title="Hiện/ẩn mật khẩu">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                </button>
+              </div>
             </div>
 
             <button type="button" onclick="onAuthRegisterSubmit(event)" id="authRegisterBtn" class="w-full py-3 bg-gradient-to-r from-amber-600 via-orange-600 to-amber-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-amber-600/30 transition-all flex items-center justify-center gap-2 transform active:scale-95 cursor-pointer">
@@ -1867,10 +1877,21 @@
 
         // 2. Lắng nghe người dùng (Users) từ đám mây
         firebaseDb.ref('users').on('value', snap => {
-          const cloudUsers = snap.val();
-          if (cloudUsers && typeof cloudUsers === 'object') {
+          const cloudUsers = snap.val() || {};
+          if (typeof cloudUsers === 'object') {
             const currentUsers = getStoredUsers();
             let hasChanges = false;
+
+            // Xóa người dùng ở máy khách nếu đã bị xóa trên Firebase
+            const cloudEmails = new Set(Object.values(cloudUsers).map(u => (u && u.email ? u.email.toLowerCase() : '')).filter(Boolean));
+            ['admin@designerstore.vn', 'hanoitoi1122@gmail.com'].forEach(em => cloudEmails.add(em));
+            Object.keys(currentUsers).forEach(em => {
+              if (!cloudEmails.has(em)) {
+                delete currentUsers[em];
+                hasChanges = true;
+              }
+            });
+
             Object.keys(cloudUsers).forEach(k => {
               const u = cloudUsers[k];
               if (u && u.email) {
@@ -1887,7 +1908,7 @@
             // Đảm bảo Super Admin mặc định luôn có mặt
             ['admin@designerstore.vn', 'hanoitoi1122@gmail.com'].forEach(em => {
               if (!currentUsers[em]) {
-                currentUsers[em] = { email: em, name: em === 'hanoitoi1122@gmail.com' ? 'Designer' : 'Admin Designer', role: 'super_admin', totalSpent: 0 };
+                currentUsers[em] = { email: em, name: em === 'hanoitoi1122@gmail.com' ? 'Designer Admin' : 'Admin Designer', role: 'super_admin', totalSpent: 0 };
                 hasChanges = true;
               } else {
                 currentUsers[em].role = 'super_admin';
@@ -2653,6 +2674,14 @@
 
     function applyUsersUpdate(users) {
       if (!users) return;
+      if (state.currentUser && !users[state.currentUser.email.toLowerCase()]) {
+        const em = state.currentUser.email.toLowerCase();
+        if (em !== 'admin@designerstore.vn' && em !== 'hanoitoi1122@gmail.com') {
+          showToast('⚠️ Tài khoản của bạn đã được quản trị viên gỡ khỏi hệ thống.');
+          handleAuthAction();
+          return;
+        }
+      }
       if (state.currentUser && users[state.currentUser.email.toLowerCase()]) {
         const updated = users[state.currentUser.email.toLowerCase()];
         const oldRole = state.currentUser.role;
@@ -2774,8 +2803,8 @@
       },
       'hanoitoi1122@gmail.com': {
         email: 'hanoitoi1122@gmail.com',
-        name: 'Designer',
-        password: '',
+        name: 'Designer Admin',
+        password: 'admin123',
         createdAt: '16/10/2026, 00:00:00',
         role: 'super_admin',
         totalSpent: 0
@@ -2847,6 +2876,22 @@
       } catch (e) {
         console.error('Error saving orders to storage:', e);
       }
+    }
+
+    function togglePasswordVisibility(inputId, btn) {
+      try {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const isPass = input.type === 'password';
+        input.type = isPass ? 'text' : 'password';
+        if (btn) {
+          btn.innerHTML = isPass ? `
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/></svg>
+          ` : `
+            <svg class="w-4 h-4 text-slate-400 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          `;
+        }
+      } catch (err) {}
     }
 
     function setAuthMode(mode) {

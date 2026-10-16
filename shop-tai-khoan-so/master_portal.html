@@ -584,8 +584,17 @@
               <p class="text-xs text-slate-400 mt-0.5">Cấp hoặc tước quyền Admin 1-click, can thiệp điều chỉnh cấp bậc VIP và số tiền tích lũy của khách hàng.</p>
             </div>
             <div class="flex items-center gap-2 flex-wrap">
-              <input type="text" id="userSearchInput" oninput="filterUserList(this.value)" placeholder="🔍 Tìm email, tên..." class="bg-[#151a28] border border-[#273248] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-red-500 w-48 sm:w-60">
-              <button onclick="openCreateUserModal()" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
+              <input type="text" id="userSearchInput" oninput="filterUserList(this.value)" placeholder="🔍 Tìm email, tên..." class="bg-[#151a28] border border-[#273248] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-red-500 w-44 sm:w-56">
+              <select id="userRoleFilter" onchange="filterUserRole(this.value)" class="bg-[#151a28] border border-[#273248] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-red-500 font-medium cursor-pointer">
+                <option value="all">⚡ Tất Cả Vai Trò</option>
+                <option value="super_admin">👑 Super Admin</option>
+                <option value="admin">🛡️ Admin Trực Ca</option>
+                <option value="customer">👤 Khách Hàng</option>
+              </select>
+              <button onclick="cleanupGarbageUsers()" class="px-3 py-1.5 bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 text-amber-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer" title="Dọn dẹp các tài khoản thử nghiệm / rác">
+                <span>🧹 Dọn Rác Tài Khoản</span>
+              </button>
+              <button onclick="openCreateUserModal()" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
                 <span>➕ Thêm Tài Khoản</span>
               </button>
             </div>
@@ -886,8 +895,13 @@
         </div>
 
         <div>
-          <label class="block font-semibold text-slate-300 mb-1">Mật khẩu</label>
-          <input type="password" id="uemPassword" placeholder="•••••••• (Để trống nếu giữ nguyên)" class="w-full bg-[#181d2c] border border-[#2b364d] rounded-xl px-3 py-2 text-white font-mono">
+          <label class="block font-semibold text-slate-300 mb-1">Mật khẩu mới / Đổi mật khẩu</label>
+          <div class="relative">
+            <input type="password" id="uemPassword" placeholder="•••••••• (Để trống nếu giữ nguyên)" class="w-full bg-[#181d2c] border border-[#2b364d] rounded-xl pl-3 pr-10 py-2 text-white font-mono">
+            <button type="button" onclick="togglePasswordVisibility('uemPassword', this)" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white transition-colors cursor-pointer" title="Hiện/ẩn mật khẩu">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            </button>
+          </div>
         </div>
 
         <div>
@@ -1004,9 +1018,20 @@
 
         // 3. Lắng nghe Người Dùng (Users) thời gian thực
         firebaseDb.ref('users').on('value', snap => {
-          const cloudUsers = snap.val();
-          if (cloudUsers && typeof cloudUsers === 'object') {
+          const cloudUsers = snap.val() || {};
+          if (typeof cloudUsers === 'object') {
             let hasChanges = false;
+
+            // Xóa người dùng ở masterState nếu đã bị xóa trên Firebase
+            const cloudEmails = new Set(Object.values(cloudUsers).map(u => (u && u.email ? u.email.toLowerCase() : '')).filter(Boolean));
+            ['admin@designerstore.vn', 'hanoitoi1122@gmail.com'].forEach(em => cloudEmails.add(em));
+            Object.keys(masterState.users).forEach(em => {
+              if (!cloudEmails.has(em)) {
+                delete masterState.users[em];
+                hasChanges = true;
+              }
+            });
+
             Object.keys(cloudUsers).forEach(k => {
               const u = cloudUsers[k];
               if (u && u.email) {
@@ -1023,7 +1048,7 @@
             // Đảm bảo Super Admin mặc định luôn có mặt
             ['admin@designerstore.vn', 'hanoitoi1122@gmail.com'].forEach(em => {
               if (!masterState.users[em]) {
-                masterState.users[em] = { email: em, name: em === 'hanoitoi1122@gmail.com' ? 'Designer' : 'Admin Designer', role: 'super_admin', totalSpent: 0 };
+                masterState.users[em] = { email: em, name: em === 'hanoitoi1122@gmail.com' ? 'Designer Admin' : 'Admin Designer', role: 'super_admin', totalSpent: 0 };
                 hasChanges = true;
               } else {
                 masterState.users[em].role = 'super_admin';
@@ -1423,12 +1448,14 @@
         'admin@designerstore.vn': {
           email: 'admin@designerstore.vn',
           name: 'Admin Designer',
+          password: 'admin123',
           role: 'super_admin',
           totalSpent: 0
         },
         'hanoitoi1122@gmail.com': {
           email: 'hanoitoi1122@gmail.com',
-          name: 'Designer',
+          name: 'Designer Admin',
+          password: 'admin123',
           role: 'super_admin',
           totalSpent: 0
         }
@@ -2176,10 +2203,32 @@
 
     // ================= TAB 4: TÀI KHOẢN & CẤP QUYỀN ADMIN =================
     let currentUserSearchQuery = '';
+    let currentUserRoleFilter = 'all';
 
     function filterUserList(val) {
       currentUserSearchQuery = (val || '').toLowerCase().trim();
       renderUsersTable();
+    }
+
+    function filterUserRole(val) {
+      currentUserRoleFilter = val || 'all';
+      renderUsersTable();
+    }
+
+    function togglePasswordVisibility(inputId, btn) {
+      try {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const isPass = input.type === 'password';
+        input.type = isPass ? 'text' : 'password';
+        if (btn) {
+          btn.innerHTML = isPass ? `
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/></svg>
+          ` : `
+            <svg class="w-4 h-4 text-slate-400 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          `;
+        }
+      } catch (err) {}
     }
 
     function renderUsersTable() {
@@ -2188,11 +2237,35 @@
       tbody.innerHTML = '';
 
       let list = Object.values(masterState.users);
+
+      // 1. Lọc theo Vai Trò (Role Filter)
+      if (currentUserRoleFilter && currentUserRoleFilter !== 'all') {
+        list = list.filter(u => {
+          const isSuper = u.role === 'super_admin' || u.email === 'admin@designerstore.vn' || u.email === 'hanoitoi1122@gmail.com';
+          if (currentUserRoleFilter === 'super_admin') return isSuper;
+          if (currentUserRoleFilter === 'admin') return u.role === 'admin' && !isSuper;
+          if (currentUserRoleFilter === 'customer') return (!u.role || u.role === 'customer') && !isSuper;
+          return true;
+        });
+      }
+
+      // 2. Lọc theo Từ khóa tìm kiếm
       if (currentUserSearchQuery) {
         list = list.filter(u => 
           (u.email || '').toLowerCase().includes(currentUserSearchQuery) ||
           (u.name || '').toLowerCase().includes(currentUserSearchQuery)
         );
+      }
+
+      if (list.length === 0) {
+        const emptyTr = document.createElement('tr');
+        emptyTr.innerHTML = `
+          <td colspan="6" class="px-4 py-8 text-center text-slate-400 italic">
+            Không tìm thấy tài khoản người dùng nào phù hợp với bộ lọc hiện tại.
+          </td>
+        `;
+        tbody.appendChild(emptyTr);
+        return;
       }
 
       list.forEach(u => {
@@ -2233,8 +2306,13 @@
               </button>
             ` : ''}
             <button onclick="openUserEditModal('${escapeHtml(u.email)}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#1a1f2e] hover:bg-[#252d42] border border-[#2b364d] text-slate-300 hover:text-white transition-all cursor-pointer">
-              Sửa VIP
+              Sửa / Pass
             </button>
+            ${!isSuperAdmin ? `
+              <button onclick="deleteUser('${escapeHtml(u.email)}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/50 text-rose-300 hover:text-white transition-all cursor-pointer" title="Xóa tài khoản này">
+                Xóa
+              </button>
+            ` : ''}
           </td>
         `;
         tbody.appendChild(tr);
@@ -2261,16 +2339,66 @@
       showMasterToast(`Đã chuyển vai trò của [${user.name}] thành: ${newRole === 'admin' ? '🛡️ Admin Trực Ca' : '👤 Khách Hàng'}!`, 'success');
     }
 
+    function deleteUser(email) {
+      if (!email) return;
+      const em = email.toLowerCase();
+      if (em === 'admin@designerstore.vn' || em === 'hanoitoi1122@gmail.com') {
+        showMasterToast('⚠️ Không thể xóa tài khoản Super Admin (Chủ Shop)!', 'error');
+        return;
+      }
+      const u = masterState.users[em];
+      const name = u ? (u.name || em) : em;
+      if (!confirm(`Bạn có chắc chắn muốn XÓA VĨNH VIỄN tài khoản [${name} - ${em}] khỏi hệ thống và Cloud?`)) {
+        return;
+      }
+      delete masterState.users[em];
+      localStorage.setItem(MASTER_USERS_KEY, JSON.stringify(masterState.users));
+      
+      if (firebaseDb) {
+        firebaseDb.ref('users/' + encodeFirebaseKey(em)).remove().catch(e => console.warn('Firebase remove error:', e));
+      }
+      if (syncChannel) {
+        syncChannel.postMessage({ type: 'USERS_UPDATED', users: masterState.users });
+      }
+      renderUsersTable();
+      updateKpiMetrics();
+      showMasterToast(`🗑️ Đã xóa vĩnh viễn tài khoản [${em}] thành công!`, 'success');
+    }
+
+    function cleanupGarbageUsers() {
+      if (!confirm('Khôi phục danh sách người dùng về mặc định sạch (chỉ giữ lại 2 tài khoản Super Admin chính thức)? Mọi tài khoản thử nghiệm rác sẽ bị xóa khỏi đám mây và máy khách.')) {
+        return;
+      }
+      const preserveEmails = ['admin@designerstore.vn', 'hanoitoi1122@gmail.com'];
+      const currentEmails = Object.keys(masterState.users);
+      let deletedCount = 0;
+      currentEmails.forEach(em => {
+        if (!preserveEmails.includes(em)) {
+          if (firebaseDb) {
+            firebaseDb.ref('users/' + encodeFirebaseKey(em)).remove().catch(e => console.warn(e));
+          }
+          delete masterState.users[em];
+          deletedCount++;
+        }
+      });
+      saveUsersToStorage();
+      renderUsersTable();
+      updateKpiMetrics();
+      showMasterToast(`🧹 Đã dọn dẹp ${deletedCount} tài khoản rác! Chỉ giữ lại Super Admin sạch sẽ.`, 'success');
+    }
+
     function openUserEditModal(email) {
       const modal = document.getElementById('userEditModal');
       const u = masterState.users[email.toLowerCase()];
       if (!u) return;
 
+      const isSuper = (u.email === 'admin@designerstore.vn' || u.email === 'hanoitoi1122@gmail.com');
       document.getElementById('uemEmail').value = u.email;
       document.getElementById('uemEmail').disabled = true;
       document.getElementById('uemName').value = u.name || '';
       document.getElementById('uemPassword').value = '';
       document.getElementById('uemRole').value = u.role || 'customer';
+      document.getElementById('uemRole').disabled = isSuper;
       document.getElementById('uemTotalSpent').value = u.totalSpent || 0;
 
       modal.classList.remove('hidden');
@@ -2283,6 +2411,7 @@
       document.getElementById('uemName').value = '';
       document.getElementById('uemPassword').value = '123456';
       document.getElementById('uemRole').value = 'customer';
+      document.getElementById('uemRole').disabled = false;
       document.getElementById('uemTotalSpent').value = 0;
       modal.classList.remove('hidden');
     }
