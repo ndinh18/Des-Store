@@ -7,6 +7,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js cho biểu đồ thống kê doanh thu -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Firebase Cloud Realtime Database SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <style>
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #0c0e15; }
@@ -90,9 +93,9 @@
             </h1>
           </div>
           <p class="text-[11px] text-slate-400 flex items-center gap-2">
-            <span class="text-emerald-400 font-semibold flex items-center gap-1">
+            <span id="masterCloudBadge" class="text-emerald-400 font-semibold flex items-center gap-1">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              Đồng Bộ Thời Gian Thực
+              <span>☁️ Đám Mây: Trực Tuyến</span>
             </span>
             <span class="text-slate-600">•</span>
             <span id="headerLiveClock" class="font-mono text-slate-300">--:--:--</span>
@@ -928,6 +931,159 @@
     const MASTER_SESSION_AUTH_KEY = 'DESIGNER_STORE_MASTER_AUTH_PASS';
     const MASTER_PIN_KEY = 'DESIGNER_STORE_MASTER_PIN_SECRET';
 
+    // ================= CẤU HÌNH & KHỞI TẠO FIREBASE REALTIME DATABASE (ĐÁM MÂY) =================
+    const firebaseConfig = {
+      apiKey: "AIzaSyDAEccPI_tfu3CPhoI1erCXqdmBTsb2dM8",
+      authDomain: "des-store-539ec.firebaseapp.com",
+      databaseURL: "https://des-store-539ec-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "des-store-539ec",
+      storageBucket: "des-store-539ec.firebasestorage.app",
+      messagingSenderId: "759180880320",
+      appId: "1:759180880320:web:758979c13559ac77b44025"
+    };
+
+    let firebaseDb = null;
+
+    function encodeFirebaseKey(key) {
+      if (!key) return '';
+      return String(key).replace(/\./g, ',').replace(/\$/g, '_').replace(/#/g, '_').replace(/\[/g, '_').replace(/\]/g, '_').replace(/\//g, '_');
+    }
+
+    function decodeFirebaseKey(key) {
+      if (!key) return '';
+      return String(key).replace(/,/g, '.');
+    }
+
+    function updateMasterCloudStatusUI(isLive) {
+      const badge = document.getElementById('masterCloudBadge');
+      if (badge) {
+        if (isLive) {
+          badge.className = 'text-emerald-400 font-semibold flex items-center gap-1';
+          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span><span>☁️ Đám Mây: Trực Tuyến</span>';
+        } else {
+          badge.className = 'text-amber-400 font-semibold flex items-center gap-1';
+          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>☁️ Đang kết nối...</span>';
+        }
+      }
+    }
+
+    function initMasterFirebaseSync() {
+      try {
+        if (typeof firebase === 'undefined') {
+          console.warn('Firebase SDK chưa sẵn sàng, sử dụng localStorage.');
+          return;
+        }
+
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+        firebaseDb = firebase.database();
+
+        // 1. Theo dõi kết nối
+        firebaseDb.ref('.info/connected').on('value', snap => {
+          updateMasterCloudStatusUI(!!snap.val());
+        });
+
+        // 2. Lắng nghe Đơn Hàng thời gian thực từ khách hàng
+        firebaseDb.ref('orders').on('value', snap => {
+          const cloudOrders = snap.val();
+          if (cloudOrders && typeof cloudOrders === 'object') {
+            const prevCount = Object.keys(masterState.orders || {}).length;
+            const newCount = Object.keys(cloudOrders).length;
+            masterState.orders = cloudOrders;
+            localStorage.setItem(MASTER_ORDERS_KEY, JSON.stringify(masterState.orders));
+            updateKpiMetrics();
+            if (masterState.currentTab === 'dashboard') {
+              renderDashboardCharts();
+            }
+            if (newCount > prevCount && prevCount > 0) {
+              showMasterToast('🔔 CÓ ĐƠN HÀNG MỚI ĐƯỢC TẠO TỪ KHÁCH HÀNG!', 'success');
+            }
+          }
+        });
+
+        // 3. Lắng nghe Người Dùng (Users) thời gian thực
+        firebaseDb.ref('users').on('value', snap => {
+          const cloudUsers = snap.val();
+          if (cloudUsers && typeof cloudUsers === 'object') {
+            let hasChanges = false;
+            Object.keys(cloudUsers).forEach(k => {
+              const u = cloudUsers[k];
+              if (u && u.email) {
+                const em = u.email.toLowerCase();
+                if (em === 'admin@designerstore.vn' || em === 'hanoitoi1122@gmail.com') {
+                  u.role = 'super_admin';
+                }
+                if (!masterState.users[em] || JSON.stringify(masterState.users[em]) !== JSON.stringify(u)) {
+                  masterState.users[em] = u;
+                  hasChanges = true;
+                }
+              }
+            });
+            // Đảm bảo Super Admin mặc định luôn có mặt
+            ['admin@designerstore.vn', 'hanoitoi1122@gmail.com'].forEach(em => {
+              if (!masterState.users[em]) {
+                masterState.users[em] = { email: em, name: em === 'hanoitoi1122@gmail.com' ? 'Designer' : 'Admin Designer', role: 'super_admin', totalSpent: 0 };
+                hasChanges = true;
+              } else {
+                masterState.users[em].role = 'super_admin';
+              }
+            });
+            if (hasChanges) {
+              localStorage.setItem(MASTER_USERS_KEY, JSON.stringify(masterState.users));
+              updateKpiMetrics();
+              if (masterState.currentTab === 'users') {
+                renderUsersTable();
+              }
+            }
+          }
+        });
+
+        // 4. Lắng nghe Cấu hình từ đám mây
+        firebaseDb.ref('config').on('value', snap => {
+          const cloudCfg = snap.val();
+          if (cloudCfg && typeof cloudCfg === 'object') {
+            masterState.config = { ...masterState.config, ...cloudCfg };
+            localStorage.setItem(MASTER_CONFIG_KEY, JSON.stringify(masterState.config));
+            updateMaintenanceUI();
+            applyMasterPortalBranding(masterState.config);
+          }
+        });
+
+        // 5. Lắng nghe Sản phẩm từ đám mây
+        firebaseDb.ref('products').on('value', snap => {
+          const cloudProds = snap.val();
+          if (cloudProds && typeof cloudProds === 'object') {
+            masterState.products = cloudProds;
+            localStorage.setItem(MASTER_PRODUCTS_KEY, JSON.stringify(cloudProds));
+            if (masterState.currentTab === 'products') {
+              renderProductsList();
+            }
+          }
+        });
+
+        // Đồng bộ Super Admin vĩnh viễn lên Cloud
+        const superAdmins = [
+          { email: 'admin@designerstore.vn', name: 'Admin Designer', role: 'super_admin', totalSpent: 0 },
+          { email: 'hanoitoi1122@gmail.com', name: 'Designer', role: 'super_admin', totalSpent: 0 }
+        ];
+        superAdmins.forEach(adm => {
+          const k = encodeFirebaseKey(adm.email);
+          firebaseDb.ref('users/' + k).once('value', snap => {
+            const val = snap.val();
+            if (!val) {
+              firebaseDb.ref('users/' + k).set(adm);
+            } else if (val.role !== 'super_admin') {
+              firebaseDb.ref('users/' + k + '/role').set('super_admin');
+            }
+          });
+        });
+
+      } catch (err) {
+        console.error('Lỗi khi thiết lập Master Firebase Sync:', err);
+      }
+    }
+
     // Broadcast Channel đồng bộ siêu tốc giữa 2 trang web
     const syncChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('DESIGNER_STORE_CHANNEL') : null;
 
@@ -951,6 +1107,7 @@
     window.addEventListener('DOMContentLoaded', () => {
       initMasterPin();
       loadAllSystemData();
+      initMasterFirebaseSync();
       checkSavedMasterSession();
 
       // Đồng hồ thời gian thực
@@ -1266,7 +1423,13 @@
         'admin@designerstore.vn': {
           email: 'admin@designerstore.vn',
           name: 'Admin Designer',
-          role: 'admin',
+          role: 'super_admin',
+          totalSpent: 0
+        },
+        'hanoitoi1122@gmail.com': {
+          email: 'hanoitoi1122@gmail.com',
+          name: 'Designer',
+          role: 'super_admin',
           totalSpent: 0
         }
       };
@@ -1276,6 +1439,14 @@
       } catch (e) {
         masterState.users = defaultUsers;
       }
+      // Khóa chặt: 2 tài khoản Super Admin luôn giữ quyền super_admin
+      ['admin@designerstore.vn', 'hanoitoi1122@gmail.com'].forEach(em => {
+        if (!masterState.users[em]) {
+          masterState.users[em] = defaultUsers[em];
+        } else {
+          masterState.users[em].role = 'super_admin';
+        }
+      });
     }
 
     function loadAuditLogsFromStorage() {
@@ -1814,6 +1985,10 @@
       masterState.config = updated;
       localStorage.setItem(MASTER_CONFIG_KEY, JSON.stringify(updated));
 
+      if (firebaseDb) {
+        firebaseDb.ref('config').set(updated).catch(err => console.warn('Firebase config sync err:', err));
+      }
+
       // Phát sự kiện đồng bộ realtime qua BroadcastChannel
       if (syncChannel) {
         syncChannel.postMessage({ type: 'CONFIG_UPDATED', config: updated });
@@ -1984,6 +2159,9 @@
       if (syncChannel) {
         syncChannel.postMessage({ type: 'PRODUCTS_UPDATED', products: masterState.products });
       }
+      if (firebaseDb && masterState.products) {
+        firebaseDb.ref('products').set(masterState.products).catch(err => console.warn('Firebase products sync err:', err));
+      }
     }
 
     function resetDefaultProducts() {
@@ -2021,7 +2199,7 @@
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-[#141824] transition-colors';
 
-        const isSuperAdmin = u.role === 'super_admin' || u.email === 'admin@designerstore.vn';
+        const isSuperAdmin = u.role === 'super_admin' || u.email === 'admin@designerstore.vn' || u.email === 'hanoitoi1122@gmail.com';
         const isAdmin = u.role === 'admin' || isSuperAdmin;
         const total = u.totalSpent || 0;
 
@@ -2064,7 +2242,13 @@
     }
 
     function toggleAdminRole(email) {
-      const user = masterState.users[email.toLowerCase()];
+      if (!email) return;
+      const em = email.toLowerCase();
+      if (em === 'admin@designerstore.vn' || em === 'hanoitoi1122@gmail.com') {
+        showMasterToast('⚠️ Không thể thay đổi quyền của Super Admin (Chủ Shop)!', 'error');
+        return;
+      }
+      const user = masterState.users[em];
       if (!user) return;
 
       const newRole = user.role === 'admin' ? 'customer' : 'admin';
@@ -2074,7 +2258,7 @@
       renderUsersTable();
       updateKpiMetrics();
 
-      showMasterToast(`Đã chuyển vai trò của [${user.name}] thành: ${newRole === 'admin' ? '🛡️ Admin' : '👤 Khách Hàng'}!`, 'success');
+      showMasterToast(`Đã chuyển vai trò của [${user.name}] thành: ${newRole === 'admin' ? '🛡️ Admin Trực Ca' : '👤 Khách Hàng'}!`, 'success');
     }
 
     function openUserEditModal(email) {
@@ -2110,13 +2294,17 @@
     function saveUserFromModal() {
       const email = document.getElementById('uemEmail').value.trim().toLowerCase();
       const name = document.getElementById('uemName').value.trim();
-      const role = document.getElementById('uemRole').value;
+      let role = document.getElementById('uemRole').value;
       const totalSpent = parseInt(document.getElementById('uemTotalSpent').value) || 0;
       const pass = document.getElementById('uemPassword').value.trim();
 
       if (!email || !name) {
         alert('Vui lòng nhập đầy đủ Email và Tên!');
         return;
+      }
+
+      if (email === 'admin@designerstore.vn' || email === 'hanoitoi1122@gmail.com') {
+        role = 'super_admin';
       }
 
       const isDuplicateName = Object.values(masterState.users).some(u => 
@@ -2148,6 +2336,14 @@
       localStorage.setItem(MASTER_USERS_KEY, JSON.stringify(masterState.users));
       if (syncChannel) {
         syncChannel.postMessage({ type: 'USERS_UPDATED', users: masterState.users });
+      }
+      if (firebaseDb && masterState.users) {
+        Object.keys(masterState.users).forEach(em => {
+          const u = masterState.users[em];
+          if (u && u.email) {
+            firebaseDb.ref('users/' + encodeFirebaseKey(u.email)).set(u).catch(e => console.warn(e));
+          }
+        });
       }
     }
 
